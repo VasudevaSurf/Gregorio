@@ -14,9 +14,9 @@ export default function HomePage() {
       <div className="relative z-10 w-full transform-gpu">
 
         {/* Header 1 (Top Half of GREGORIO): Sticky top-0, z-50 */}
-        <div className="sticky top-0 z-50 w-full h-[32px] sm:h-[48px] md:h-[56px] bg-neutral-950 flex items-end justify-center overflow-hidden border-t border-white/15 shadow-2xl">
+        <div className="sticky top-0 z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden border-t border-white/15 shadow-2xl">
           <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
-            <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%]">
+            <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%]">
               GREGORIO
             </h2>
           </div>
@@ -30,10 +30,10 @@ export default function HomePage() {
         {/* Section 3 Container */}
         <div className="relative z-20 w-full">
 
-          {/* Header 2 (Bottom Half of GREGORIO): Sticky top-32/48/56, z-50 */}
-          <div className="sticky top-[32px] sm:top-[48px] md:top-[56px] z-50 w-full h-[32px] sm:h-[48px] md:h-[56px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
+          {/* Header 2 (Bottom Half of GREGORIO): Sticky at 1x header-height, z-50 */}
+          <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
             <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
-              <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%]">
+              <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%]">
                 GREGORIO
               </h2>
             </div>
@@ -49,9 +49,9 @@ export default function HomePage() {
           <div className="relative z-20 w-full">
 
             {/* Header 3 (Top Half of WORLD): Sticky at 2x header-height, stacks below Headers 1 & 2, z-50 */}
-            <div className="sticky top-[64px] sm:top-[96px] md:top-[112px] z-50 w-full h-[32px] sm:h-[48px] md:h-[56px] bg-neutral-950 flex items-end justify-center overflow-hidden shadow-2xl">
+            <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden shadow-2xl">
               <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
-                <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%]">
+                <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%]">
                   WORLD
                 </h2>
               </div>
@@ -66,9 +66,9 @@ export default function HomePage() {
             <div className="relative z-20 w-full">
 
               {/* Header 4 (Bottom Half of WORLD): Sticky at 3x header-height, stacks below Header 3, z-50 */}
-              <div className="sticky top-[96px] sm:top-[144px] md:top-[168px] z-50 w-full h-[32px] sm:h-[48px] md:h-[56px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
+              <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
                 <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
-                  <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%]">
+                  <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%]">
                     WORLD
                   </h2>
                 </div>
