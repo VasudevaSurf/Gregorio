@@ -19,7 +19,7 @@ const CARD_SPREAD = 0.78;
 /** Uniform size multiplier applied to every testimonial card's configured
  *  width. Bump this to make all cards in the section bigger/smaller
  *  without having to touch each card's width in categoryScenes.ts. */
-const CARD_SIZE_SCALE = 1.3;
+const CARD_SIZE_SCALE = 1.6;
 
 /** How much of each category's own slice of the timeline (at the very
  *  start / end) is used to crossfade into / out of its neighbour. Bigger
@@ -200,10 +200,11 @@ function TestimonialCard({
       }}
     >
       <div
-        className="testimonial-card relative rounded-[20px] p-6 sm:p-7 flex gap-4 items-start overflow-hidden"
+        className="testimonial-card relative rounded-[26px] p-7 sm:p-9 flex gap-5 items-start overflow-hidden"
         style={
           {
             backgroundColor: "#fdfcf8",
+            backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fdfcf8 40%, #f7f4eb 100%)",
             border: "1px solid rgba(0,0,0,0.06)",
             boxShadow:
               "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.06), 0 16px 32px -10px rgba(0,0,0,0.32), 0 30px 60px -20px rgba(0,0,0,0.35)",
@@ -211,9 +212,17 @@ function TestimonialCard({
           } as React.CSSProperties
         }
       >
+        {/* Thin glowing brand-accent line along the top edge — brightens on hover */}
+        <div
+          className="tm-accent-bar absolute top-0 left-9 right-9 h-[3px] rounded-full"
+          style={{ background: `linear-gradient(90deg, transparent, ${avatarColor}, transparent)` }}
+        />
+        {/* Diagonal sheen that sweeps across the card on hover */}
+        <div className="tm-sheen absolute inset-0 pointer-events-none" />
+
         {/* Swap this div for <OptimizedImage src={card.avatarSrc} .../> once real avatar photos are ready */}
         <div
-          className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-sm sm:text-base font-bold text-white"
+          className="tm-avatar shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-base sm:text-lg font-bold text-white"
           style={{
             background: `linear-gradient(135deg, ${avatarColor}, ${shade(avatarColor, 0.35)})`,
             boxShadow: "0 0 0 3px rgba(255,255,255,0.65), 0 4px 10px rgba(0,0,0,0.22)",
@@ -223,10 +232,10 @@ function TestimonialCard({
         </div>
         <div className="min-w-0 relative">
           <p
-            className="font-serif text-[13px] sm:text-[16px] leading-snug text-neutral-900"
+            className="font-serif text-[15px] sm:text-[19px] leading-snug text-neutral-900"
             style={{
               display: "-webkit-box",
-              WebkitLineClamp: 5,
+              WebkitLineClamp: 6,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
             }}
@@ -234,10 +243,10 @@ function TestimonialCard({
             <span className="font-bold not-italic">'{card.headline}</span>{" "}
             <span className="italic font-normal text-neutral-700">{card.body}'</span>
           </p>
-          <p className="mt-4 text-[13px] sm:text-base font-bold text-neutral-900 tracking-tight truncate">
+          <p className="mt-4 text-[14px] sm:text-lg font-bold text-neutral-900 tracking-tight truncate">
             {card.name}
           </p>
-          <p className="text-[10px] sm:text-xs tracking-[0.15em] uppercase text-neutral-500 leading-snug">
+          <p className="text-[11px] sm:text-sm tracking-[0.15em] uppercase text-neutral-500 leading-snug">
             {card.subtitle}
           </p>
         </div>

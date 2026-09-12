@@ -78,4 +78,195 @@
   color: var(--tm-accent, #000);
   opacity: 0.14;
   pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+/* Testimonial card hover interaction — lives on the INNER card, not the
+   outer scroll-positioned wrapper, so it never fights the scroll-linked
+   translate/rotate/scale transform that's set inline on the wrapper. */
+.testimonial-card {
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s ease, border-color 0.4s ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-10px) scale(1.035) rotate(0deg);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 24px 40px -12px rgba(0, 0, 0, 0.4),
+    0 45px 80px -25px rgba(0, 0, 0, 0.45);
+}
+
+.testimonial-card:hover::before {
+  opacity: 0.26;
+}
+
+.tm-accent-bar {
+  opacity: 0.45;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: scaleX(0.7);
+}
+
+.testimonial-card:hover .tm-accent-bar {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.tm-avatar {
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s ease;
+}
+
+.testimonial-card:hover .tm-avatar {
+  transform: scale(1.08) rotate(-4deg);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85), 0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+.tm-sheen {
+  background: linear-gradient(115deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.55) 42%,
+      rgba(255, 255, 255, 0.55) 46%,
+      transparent 68%);
+  background-size: 250% 250%;
+  background-position: -60% -60%;
+  opacity: 0;
+  transition: opacity 0.4s ease, background-position 0.9s ease;
+}
+
+.testimonial-card:hover .tm-sheen {
+  opacity: 1;
+  background-position: 60% 60%;
+}
+
+/* Touch devices have no real hover — skip the lift/scale so a lingering
+   :hover state after a tap never leaves a card stuck mid-animation. */
+@media (hover: none) {
+  .testimonial-card:hover {
+    transform: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 1px 2px rgba(0, 0, 0, 0.06),
+      0 16px 32px -10px rgba(0, 0, 0, 0.32),
+      0 30px 60px -20px rgba(0, 0, 0, 0.35);
+  }
+
+  .testimonial-card:hover .tm-avatar {
+    transform: none;
+  }
+}
+
+/* Section Three ambient background decor — quiet motion that fills the
+   gaps between the pulled-in testimonial cards instead of more content:
+   a hairline rotating orbit ring, a few soft breathing glow blooms tucked
+   into the corners the cards never reach, and drifting light motes. */
+
+.orbit-ring {
+  transform: translate(-50%, -50%);
+  animation: st-orbit-spin 160s linear infinite;
+}
+
+@keyframes st-orbit-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(75px);
+  will-change: transform, opacity;
+}
+
+.ambient-orb--a {
+  width: min(38vmin, 420px);
+  height: min(38vmin, 420px);
+  top: -8%;
+  left: -8%;
+  opacity: 0.16;
+  animation: st-orb-breathe 13s ease-in-out infinite;
+}
+
+.ambient-orb--b {
+  width: min(30vmin, 340px);
+  height: min(30vmin, 340px);
+  bottom: -10%;
+  right: -6%;
+  opacity: 0.14;
+  animation: st-orb-breathe 16s ease-in-out infinite -6s;
+}
+
+.ambient-orb--c {
+  width: min(22vmin, 250px);
+  height: min(22vmin, 250px);
+  top: 58%;
+  right: 4%;
+  opacity: 0.12;
+  animation: st-orb-breathe 19s ease-in-out infinite -10s;
+}
+
+@keyframes st-orb-breathe {
+
+  0%,
+  100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.2) translate(2%, -3%);
+    opacity: 1;
+  }
+}
+
+.ambient-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 9px 2px rgba(255, 255, 255, 0.4);
+  animation-name: st-particle-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes st-particle-drift {
+  0% {
+    transform: translate3d(0, 14px, 0) scale(0.6);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translate3d(-10px, -20px, 0) scale(1);
+    opacity: 0.85;
+  }
+
+  82% {
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: translate3d(8px, -38px, 0) scale(0.65);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .orbit-ring,
+  .ambient-orb,
+  .ambient-particle {
+    animation: none !important;
+  }
 }
