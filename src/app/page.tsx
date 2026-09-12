@@ -26,8 +26,12 @@ export default function HomePage() {
             top offset matches Header 1's height so this box locks in place
             at the SAME scroll position as Header 1, instead of needing an
             extra 48-80px of scroll to "catch up" after the header is already
-            stuck. That extra catch-up distance was the visible slide. */}
-        <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-10 h-screen w-full bg-neutral-950 text-white flex items-center justify-center overflow-hidden">
+            stuck. That extra catch-up distance was the visible slide.
+            Height is offset-aware (100vh - top offset) so the panel's full
+            box stays inside the visible viewport once it's pinned — a
+            plain h-screen box here would hang the offset amount below the
+            fold, cutting off whatever sits near the bottom of it. */}
+        <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-10 h-[calc(100vh-48px)] sm:h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] w-full bg-neutral-950 text-white flex items-center justify-center overflow-hidden">
           <OverlappingNarrativeSection />
         </div>
 
@@ -52,8 +56,10 @@ export default function HomePage() {
           <div data-s3-track className="relative w-full h-[500vh]">
             {/* Section 3 Card Body (z-10 local — sticky so Section 4 can overlay it) —
                 offset by 2x header-height so it locks in sync with Header 2,
-                same reasoning as Section 2 above. */}
-            <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-10 h-screen w-full bg-neutral-950 text-white shadow-2xl overflow-hidden">
+                same reasoning as Section 2 above. Height is offset-aware for
+                the same reason: this is the panel that was clipping the big
+                category word ("Lighting", etc.) and the lower cards. */}
+            <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-10 h-[calc(100vh-96px)] sm:h-[calc(100vh-128px)] md:h-[calc(100vh-160px)] w-full bg-neutral-950 text-white shadow-2xl overflow-hidden">
               <SectionThree />
             </div>
           </div>
@@ -72,8 +78,9 @@ export default function HomePage() {
             </div>
 
             {/* Section 4 Card Content (z-10) —
-                offset by 3x header-height so it locks in sync with Header 3. */}
-            <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-10 h-screen w-full bg-neutral-950 text-white pb-8 overflow-hidden">
+                offset by 3x header-height so it locks in sync with Header 3.
+                Height is offset-aware, same fix as Sections 2 and 3. */}
+            <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-10 h-[calc(100vh-144px)] sm:h-[calc(100vh-192px)] md:h-[calc(100vh-240px)] w-full bg-neutral-950 text-white pb-8 overflow-hidden">
               <SectionFour />
             </div>
 

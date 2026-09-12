@@ -82,6 +82,14 @@ export function useCategoryScroll(containerRef: React.RefObject<HTMLElement | nu
             trigger: trackEl,
             start: `top top+=${offset}`,
             end: `bottom top+=${offset}`,
+            // Tied 1:1 to scroll position (via Lenis, which already does the
+            // smoothing). A numeric scrub here would add a *second*,
+            // independent layer of easing on top of Lenis's — the two fight
+            // each other and the animation keeps drifting/catching up for a
+            // moment after you stop scrolling, which reads as the page
+            // "transporting" on its own instead of tracking your scroll.
+            // The gradual, non-abrupt feel comes from the wide crossfade
+            // window in ANIM below, not from adding lag here.
             scrub: true,
             onUpdate: (self) => {
                 const sceneProgress = self.progress;
@@ -135,13 +143,28 @@ export function useCategoryScroll(containerRef: React.RefObject<HTMLElement | nu
  *  own local window (0..1). Keeping these named/shared avoids "magic
  *  numbers" scattered through the render code. */
 export const ANIM = {
-    enterStart: -0.18,
+    // How far (as a fraction of a category's own 100vh window) the crossfade
+    // reaches into the neighboring category on each side. This used to be
+    // 0.18 (an 18% overlap), which — combined with the 1:1 scrub — read as
+    // an abrupt cut rather than a dissolve. Widening it to 0.34 spreads the
+    // fade across roughly a third of each neighboring category's scroll
+    // distance, which is what gives the gradual, one-scene-melts-into-the-
+    // next feel.
+    enterStart: -0.34,
     enterEnd: 0,
     exitStart: 1,
-    exitEnd: 1.18,
+    exitEnd: 1.34,
     driftStart: 0.12,
     driftEnd: 0.88,
 };
+
+/** Cards no longer travel their full configured `from` distance — it reads
+ *  as them flying in from way off-frame. Scaling it down keeps the same
+ *  directional entrance/exit feel while keeping the motion (and the card's
+ *  resting position) closer to where it settles. Tune this, not the per-card
+ *  `from` values in categoryScenes.ts, to adjust "how far cards travel"
+ *  globally. */
+const CARD_TRAVEL_SCALE = 0.5;
 
 /**
  * A category's own fade/scale envelope — 0 outside its window, ramping to 1
@@ -192,8 +215,10 @@ export function getCardTransform(
     // than snapping, and each card's own speed skews how quickly it commits.
     const travel = 1 - visibility;
     const eased = travel * travel * (3 - 2 * travel);
-    const x = card.from.x * eased * card.speed * 0.6 + card.from.x * eased * 0.4;
-    const y = card.from.y * eased + drift;
+    const fromX = card.from.x * CARD_TRAVEL_SCALE;
+    const fromY = card.from.y * CARD_TRAVEL_SCALE;
+    const x = fromX * eased * card.speed * 0.6 + fromX * eased * 0.4;
+    const y = fromY * eased + drift;
 
     const rotate = card.rotate + (1 - visibility) * (card.from.x >= 0 ? 10 : -10) * 0.4;
     const scale = card.scale * (0.86 + 0.14 * visibility);

@@ -8,6 +8,7 @@ import {
   useCategoryScroll,
   getCardTransform,
   getCategoryVisibility,
+  ANIM,
 } from "./section-three/useCategoryScroll";
 import type {
   CardConfig,
@@ -39,6 +40,19 @@ function fluidPx(px: number) {
   return `clamp(${min}px, ${vw.toFixed(3)}vw, ${px}px)`;
 }
 
+/** Cards were positioned (in categoryScenes.ts) using top/left percentages
+ *  that reach close to the stage's edges, which read as "scattered" once
+ *  laid out on an actual viewport. Pulling every card's rest position in
+ *  toward the stage center by this fraction keeps the same relative
+ *  composition (same corners, same overlap with the big word) while
+ *  tightening the overall spread. 1 = use the raw position as configured,
+ *  lower = tighter cluster. */
+const CARD_SPREAD = 0.78;
+
+function pulledIn(pct: number) {
+  return 50 + (pct - 50) * CARD_SPREAD;
+}
+
 function Card({
   card,
   raw,
@@ -52,8 +66,8 @@ function Card({
     <div
       className="absolute will-change-transform"
       style={{
-        top: `${card.top}%`,
-        left: `${card.left}%`,
+        top: `${pulledIn(card.top)}%`,
+        left: `${pulledIn(card.left)}%`,
         width: fluidPx(card.width),
         aspectRatio: `${card.width} / ${card.height}`,
         zIndex: card.layer === "front" ? 30 : 5,
@@ -108,8 +122,12 @@ export default function SectionThree() {
       {CATEGORY_SCENES.map((scene, i) => {
         const raw = segment - i;
         // Skip rendering categories far outside the viewport window for
-        // perf — keeps only the outgoing/incoming pair mounted.
-        if (raw < -1.1 || raw > 1.1) return null;
+        // perf — keeps only the outgoing/incoming pair mounted. Bounds are
+        // derived from ANIM's enter/exit window (rather than a hardcoded
+        // ±1.1) so widening that window for a slower crossfade can't
+        // silently start culling a category before its fade actually
+        // finishes — that mismatch was cutting the exit fade short.
+        if (raw < ANIM.enterStart - 0.05 || raw > ANIM.exitEnd + 0.05) return null;
 
         const visibility = getCategoryVisibility(raw);
         const cards = isMobile ? scene.mobileCards : scene.cards;
