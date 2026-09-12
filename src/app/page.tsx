@@ -22,15 +22,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Section 2 Card Content (z-10) —
-            top offset matches Header 1's height so this box locks in place
-            at the SAME scroll position as Header 1, instead of needing an
-            extra 48-80px of scroll to "catch up" after the header is already
-            stuck. That extra catch-up distance was the visible slide.
-            Height is offset-aware (100vh - top offset) so the panel's full
-            box stays inside the visible viewport once it's pinned — a
-            plain h-screen box here would hang the offset amount below the
-            fold, cutting off whatever sits near the bottom of it. */}
+        {/* Section 2 Card Content (z-10) */}
         <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-10 h-[calc(100vh-48px)] sm:h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] w-full bg-neutral-950 text-white flex items-center justify-center overflow-hidden">
           <OverlappingNarrativeSection />
         </div>
@@ -47,21 +39,16 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Section 3 scroll track — gives the category showcase inside
-              SectionThree its own dedicated scroll runway (independent of
-              whatever height Section 4/5 happen to have) so there's room to
-              scrub through every category. Height is set in JS by
-              useCategoryScroll (categories.length * SCROLL_VH_PER_CATEGORY),
-              this class just provides a safe non-zero fallback before JS runs. */}
-          <div data-s3-track className="relative w-full h-[500vh]">
-            {/* Section 3 Card Body (z-10 local — sticky so Section 4 can overlay it) —
-                offset by 2x header-height so it locks in sync with Header 2,
-                same reasoning as Section 2 above. Height is offset-aware for
-                the same reason: this is the panel that was clipping the big
-                category word ("Lighting", etc.) and the lower cards. */}
-            <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-10 h-[calc(100vh-96px)] sm:h-[calc(100vh-128px)] md:h-[calc(100vh-160px)] w-full bg-neutral-950 text-white shadow-2xl overflow-hidden">
-              <SectionThree />
-            </div>
+          {/* Section 3 body — plain, unpinned wrapper. Height is just
+              whatever SectionThree's own stack of per-category sticky
+              panels naturally adds up to (5 x (100vh + CARD_SCROLL_VH)).
+              No overflow-hidden here: each category panel handles its own
+              clipping internally, and putting overflow-hidden on an
+              ancestor of a `position: sticky` element is worth avoiding
+              since it can change what the sticky element sticks relative
+              to in some browsers. */}
+          <div className="relative z-10 w-full bg-neutral-950 text-white">
+            <SectionThree />
           </div>
 
           {/* Section 4 & 5 nested deck — lives inside Section 3's container so it slides up and
@@ -77,9 +64,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Section 4 Card Content (z-10) —
-                offset by 3x header-height so it locks in sync with Header 3.
-                Height is offset-aware, same fix as Sections 2 and 3. */}
+            {/* Section 4 Card Content (z-10) */}
             <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-10 h-[calc(100vh-144px)] sm:h-[calc(100vh-192px)] md:h-[calc(100vh-240px)] w-full bg-neutral-950 text-white pb-8 overflow-hidden">
               <SectionFour />
             </div>
