@@ -43,11 +43,19 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Section 3 Card Body (z-10 local — sticky so Section 4 can overlay it) —
-              offset by 2x header-height so it locks in sync with Header 2,
-              same reasoning as Section 2 above. */}
-          <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-10 h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4 overflow-hidden">
-            <SectionThree />
+          {/* Section 3 scroll track — gives the category showcase inside
+              SectionThree its own dedicated scroll runway (independent of
+              whatever height Section 4/5 happen to have) so there's room to
+              scrub through every category. Height is set in JS by
+              useCategoryScroll (categories.length * SCROLL_VH_PER_CATEGORY),
+              this class just provides a safe non-zero fallback before JS runs. */}
+          <div data-s3-track className="relative w-full h-[500vh]">
+            {/* Section 3 Card Body (z-10 local — sticky so Section 4 can overlay it) —
+                offset by 2x header-height so it locks in sync with Header 2,
+                same reasoning as Section 2 above. */}
+            <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-10 h-screen w-full bg-neutral-950 text-white shadow-2xl overflow-hidden">
+              <SectionThree />
+            </div>
           </div>
 
           {/* Section 4 & 5 nested deck — lives inside Section 3's container so it slides up and
