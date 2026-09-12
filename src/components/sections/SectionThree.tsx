@@ -7,20 +7,6 @@ import ScrollReveal from "../ui/ScrollReveal";
 export default function SectionThree() {
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 sm:py-8 flex flex-col justify-between space-y-6">
-      <div className="space-y-3">
-        <ScrollReveal direction="down">
-          <span className="text-xs uppercase tracking-[0.3em] text-amber-400 font-semibold">
-            03 // UNVEILED SANCTUARY
-          </span>
-        </ScrollReveal>
-
-        <ScrollReveal direction="up" delay={0.15}>
-          <h3 className="font-serif text-2xl sm:text-4xl md:text-5xl font-bold uppercase leading-tight max-w-4xl">
-            Where Every Element Fits Together <br />
-            <span className="italic font-light text-neutral-400">Into One Complete Vision.</span>
-          </h3>
-        </ScrollReveal>
-      </div>
 
       {/* Feature Visual Grid */}
       <ScrollReveal direction="up" delay={0.3}>

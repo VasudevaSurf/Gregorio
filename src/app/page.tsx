@@ -22,8 +22,12 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Section 2 Card Content (z-10, sticky top-0) */}
-        <div className="sticky top-0 z-10 min-h-screen w-full bg-neutral-950 text-white flex items-center justify-center overflow-hidden">
+        {/* Section 2 Card Content (z-10) —
+            top offset matches Header 1's height so this box locks in place
+            at the SAME scroll position as Header 1, instead of needing an
+            extra 48-80px of scroll to "catch up" after the header is already
+            stuck. That extra catch-up distance was the visible slide. */}
+        <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-10 h-screen w-full bg-neutral-950 text-white flex items-center justify-center overflow-hidden">
           <OverlappingNarrativeSection />
         </div>
 
@@ -39,8 +43,10 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Section 3 Card Body (z-10 local — now sticky so Section 4 can overlay it, same as Section 2) */}
-          <div className="sticky top-0 z-10 min-h-screen w-full bg-neutral-950 text-white border-t border-white/15 shadow-2xl pb-12 pt-4 overflow-hidden">
+          {/* Section 3 Card Body (z-10 local — sticky so Section 4 can overlay it) —
+              offset by 2x header-height so it locks in sync with Header 2,
+              same reasoning as Section 2 above. */}
+          <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-10 h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4 overflow-hidden">
             <SectionThree />
           </div>
 
@@ -57,8 +63,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Section 4 Card Content (z-10, sticky top-0) */}
-            <div className="sticky top-0 z-10 min-h-screen w-full bg-neutral-950 text-white pb-8 overflow-hidden">
+            {/* Section 4 Card Content (z-10) —
+                offset by 3x header-height so it locks in sync with Header 3. */}
+            <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-10 h-screen w-full bg-neutral-950 text-white pb-8 overflow-hidden">
               <SectionFour />
             </div>
 
@@ -75,7 +82,7 @@ export default function HomePage() {
               </div>
 
               {/* Section 5 Card Body (final — not sticky, nothing needs to overlay it) */}
-              <div className="min-h-screen w-full bg-neutral-950 text-white border-t border-white/15 shadow-2xl pb-12 pt-4">
+              <div className="min-h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4">
                 <SectionFive />
               </div>
 
