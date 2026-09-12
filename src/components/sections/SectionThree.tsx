@@ -46,6 +46,12 @@ const CROSSFADE_FRACTION = 0.32;
  *  what removes the "white splash" of 4 white cards appearing at once. */
 const CARD_STAGGER = 0.16;
 
+/** Mobile card-stack timings (see MobileCardStack). Pin lifts off first,
+ *  then the card slides/drops away — matching a physical unpin-then-fall
+ *  motion instead of an instant swap. */
+const PIN_LIFT_MS = 220;
+const CARD_EXIT_MS = 520;
+
 /** Smoothstep easing: slow-fast-slow instead of linear, for a gentler feel. */
 function ease(x: number) {
   const t = clamp01(x);
@@ -334,10 +340,9 @@ function TestimonialCard({
 }
 
 /**
- * Small IntersectionObserver-based reveal hook — gives the mobile cards the
- * same "arrive with intent" feel as the desktop collage's presence-driven
- * fade/scale-in (staggered, settling into a slight tilt) without needing
- * any scroll-jacking or pinned panels.
+ * Small IntersectionObserver-based reveal hook — fires the very first time
+ * a stack scrolls into view, so it can fall/settle in as a whole before
+ * the user starts tapping through it.
  */
 function useRevealed<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -361,68 +366,30 @@ function useRevealed<T extends HTMLElement>() {
 }
 
 /**
- * One testimonial card for the mobile layout, styled and animated like a
- * sticky note pinned to a wall: a small "washi tape" strip at the top,
- * a slight resting tilt, and — the headline behaviour requested — it
- * isn't just faded in, it visibly DROPS from above and settles into place
- * (with a little overshoot/bounce, like landing and sticking) as it
- * scrolls into view. Still plain block-flow (no absolute positioning), so
- * it can never overlap its neighbours, and it's full-width so the text
- * never gets cramped.
+ * The static inner markup for one card face — shared by every card in the
+ * stack regardless of which position (front / peeking behind) it's
+ * currently rendered in. Kept separate from MobileCardStack's positioning
+ * logic so the two concerns (what a card looks like vs. where it sits in
+ * the stack) don't get tangled.
  */
-function MobileTestimonialCard({
+function MobileCardFace({
   card,
-  avatarColor,
-  tilt,
-  offsetX,
+  accent,
 }: {
   card: CardConfig | MobileCardConfig;
-  avatarColor: string;
-  tilt: number;
-  offsetX: number;
+  accent: string;
 }) {
-  const { ref, revealed } = useRevealed<HTMLDivElement>();
   return (
-    <div
-      ref={ref}
-      className="testimonial-card relative mx-auto rounded-[22px] p-5 flex flex-col gap-4 overflow-hidden"
-      style={{
-        width: "88%",
-        maxWidth: 380,
-        backgroundColor: "#fdfcf8",
-        backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fdfcf8 40%, #f7f4eb 100%)",
-        border: "1px solid rgba(0,0,0,0.06)",
-        boxShadow:
-          "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.06), 0 16px 32px -10px rgba(0,0,0,0.32), 0 30px 60px -20px rgba(0,0,0,0.35)",
-        opacity: revealed ? 1 : 0,
-        // Falls from above and settles into its resting tilt/offset — the
-        // overshoot easing (back-out curve) is what gives it the "lands
-        // and sticks" bounce instead of a plain smooth slide.
-        transform: revealed
-          ? `translate(${offsetX}px, 0) rotate(${tilt}deg) scale(1)`
-          : `translate(${offsetX}px, -64px) rotate(0deg) scale(0.92)`,
-        transition: "opacity 0.45s ease, transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)",
-      }}
-    >
-      {/* Washi-tape strip pinning the note to the wall */}
-      <div
-        className="absolute -top-3 left-1/2 h-6 w-16 rounded-[2px] pointer-events-none"
-        style={{
-          transform: `translateX(-50%) rotate(${-tilt * 1.6}deg)`,
-          background: withAlpha(avatarColor, 0.55),
-          boxShadow: "0 2px 5px rgba(0,0,0,0.18)",
-          zIndex: 2,
-        }}
-      />
+    <>
       <div
         className="tm-accent-bar absolute top-0 left-9 right-9 h-[3px] rounded-full"
-        style={{ background: `linear-gradient(90deg, transparent, ${avatarColor}, transparent)` }}
+        style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
       />
       <div className="flex items-center gap-3">
         <div
           className="tm-avatar shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-base font-bold text-white"
           style={{
-            background: `linear-gradient(135deg, ${avatarColor}, ${shade(avatarColor, 0.35)})`,
+            background: `linear-gradient(135deg, ${accent}, ${shade(accent, 0.35)})`,
             boxShadow: "0 0 0 3px rgba(255,255,255,0.65), 0 4px 10px rgba(0,0,0,0.22)",
           }}
         >
@@ -447,6 +414,131 @@ function MobileTestimonialCard({
         <span className="font-bold not-italic">'{card.headline}</span>{" "}
         <span className="italic font-normal text-neutral-700">{card.body}'</span>
       </p>
+    </>
+  );
+}
+
+/**
+ * Mobile version of a category's testimonials: a pinned STACK, not a
+ * vertical list. Only the front card is visible/interactive at a time —
+ * the rest peek out from behind it, tilted and offset like notes clipped
+ * together. Tapping the front card pops its pin off and sends it sliding
+ * away, revealing the next card underneath. Matches the reference clip:
+ * pin lifts first, then the card exits, then the next one settles into
+ * the pin's grip.
+ */
+function MobileCardStack({
+  cards,
+  accent,
+}: {
+  cards: (CardConfig | MobileCardConfig)[];
+  accent: string;
+}) {
+  const { ref, revealed } = useRevealed<HTMLDivElement>();
+  const [current, setCurrent] = useState(0);
+  const [phase, setPhase] = useState<"idle" | "lifting" | "exiting">("idle");
+
+  const handleTap = () => {
+    if (phase !== "idle" || cards.length <= 1) return;
+    setPhase("lifting");
+    window.setTimeout(() => setPhase("exiting"), PIN_LIFT_MS);
+    window.setTimeout(() => {
+      setCurrent((c) => (c + 1) % cards.length);
+      setPhase("idle");
+    }, PIN_LIFT_MS + CARD_EXIT_MS);
+  };
+
+  return (
+    <div
+      ref={ref}
+      className="relative mx-auto select-none"
+      style={{ width: "88%", maxWidth: 380, height: 360 }}
+    >
+      {/* Pin/clip holding the stack up — lifts off before the front card
+          exits, then re-settles onto whichever card is newly at front. */}
+      <div
+        className="absolute left-1/2 top-0 pointer-events-none"
+        style={{
+          zIndex: 60,
+          transformOrigin: "50% 100%",
+          transform: !revealed
+            ? "translate(-50%, -34px) rotate(0deg)"
+            : phase === "lifting"
+              ? "translate(-50%, -16px) rotate(-24deg)"
+              : "translate(-50%, -3px) rotate(0deg)",
+          opacity: revealed && phase !== "exiting" ? 1 : phase === "exiting" ? 0 : revealed ? 1 : 0,
+          transition:
+            "transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease",
+        }}
+      >
+        <div
+          className="w-10 h-5 rounded-[3px]"
+          style={{
+            background: `linear-gradient(180deg, ${withAlpha(accent, 0.9)}, ${withAlpha(accent, 0.55)})`,
+            boxShadow: "0 3px 6px rgba(0,0,0,0.25)",
+          }}
+        />
+      </div>
+
+      {cards.map((card, i) => {
+        const rel = (i - current + cards.length) % cards.length;
+        const isFront = rel === 0;
+        const isExitingFront = isFront && phase === "exiting";
+        const depth = Math.min(rel, 3);
+        const baseTilt = card.rotate ?? (i % 2 === 0 ? -2 : 2);
+
+        let transform: string;
+        let opacity = 1;
+        let z = 50 - depth;
+        let transition =
+          "transform 0.55s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease";
+
+        if (!revealed) {
+          // Whole stack falls in together the first time it scrolls into view.
+          transform = "translate(-50%, -70px) rotate(0deg) scale(0.94)";
+          opacity = 0;
+        } else if (isExitingFront) {
+          // Unpinned and dropping away, down and to the side.
+          transform = "translate(-96%, 64%) rotate(-18deg) scale(0.92)";
+          opacity = 0;
+          z = 70;
+          transition = `transform ${CARD_EXIT_MS}ms cubic-bezier(0.55,0,0.85,0.35), opacity ${CARD_EXIT_MS}ms ease`;
+        } else if (isFront) {
+          transform = `translate(-50%, 0%) rotate(${baseTilt}deg) scale(1)`;
+        } else {
+          // Peeking behind the front card — small alternating offset per
+          // depth so the stack fans out like clipped notes, not a flat pile.
+          const dx = depth % 2 === 0 ? 5 * depth : -5 * depth;
+          transform = `translate(calc(-50% + ${dx}px), ${-5 * depth}px) rotate(${baseTilt + depth * 2}deg) scale(${1 - depth * 0.035})`;
+        }
+
+        return (
+          <div
+            key={card.id}
+            onClick={isFront ? handleTap : undefined}
+            role={isFront ? "button" : undefined}
+            aria-label={isFront ? "Show next testimonial" : undefined}
+            className="testimonial-card absolute left-1/2 top-0 rounded-[22px] p-5 flex flex-col gap-4 overflow-hidden"
+            style={{
+              width: "100%",
+              height: 300,
+              backgroundColor: "#fdfcf8",
+              backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fdfcf8 40%, #f7f4eb 100%)",
+              border: "1px solid rgba(0,0,0,0.06)",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.06), 0 16px 32px -10px rgba(0,0,0,0.32), 0 30px 60px -20px rgba(0,0,0,0.35)",
+              transform,
+              opacity,
+              zIndex: z,
+              cursor: isFront ? "pointer" : "default",
+              pointerEvents: isFront ? "auto" : "none",
+              transition,
+            }}
+          >
+            <MobileCardFace card={card} accent={accent} />
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -455,14 +547,10 @@ function MobileTestimonialCard({
  * Mobile/small-screen version of Section Three. The desktop version relies
  * on absolute-positioned, percentage-placed cards sized off a 1440px
  * reference width — that math simply doesn't hold up on a narrow phone
- * screen, which is why cards were overlapping. Rather than patch the
- * collage math for every viewport size, mobile gets a simpler, safer
- * layout: each category is a normal-flow vertical stack of full-width
- * "sticky note" cards, each dropping in and settling at a slight, alternating
- * tilt as you scroll past it — like notes pinned to a wall one after
- * another, instead of a flat horizontal swipe strip. Nothing is absolutely
- * positioned, so overlap is impossible at any width, and no card is ever
- * squeezed smaller than the others to fit a row.
+ * screen. Mobile instead gets, per category, a pinned STACK of cards
+ * (MobileCardStack): only one testimonial is visible/tappable at a time,
+ * and tapping it unpins and drops it away to reveal the next — like notes
+ * pinned to a wall, taken down one at a time.
  */
 function MobileSectionThree() {
   return (
@@ -487,17 +575,7 @@ function MobileSectionThree() {
               {scene.word}
             </h2>
           </div>
-          <div className="flex flex-col gap-7 px-2">
-            {scene.mobileCards.map((card, idx) => (
-              <MobileTestimonialCard
-                key={card.id}
-                card={card}
-                avatarColor={scene.accent}
-                tilt={card.rotate * 0.6}
-                offsetX={idx % 2 === 0 ? -10 : 10}
-              />
-            ))}
-          </div>
+          <MobileCardStack cards={scene.mobileCards} accent={scene.accent} />
         </div>
       ))}
     </div>
