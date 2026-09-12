@@ -76,6 +76,82 @@ function mixColors(a: string, b: string, t: number) {
   return `rgb(${r}, ${g}, ${bch})`;
 }
 
+/** Darkens a hex color toward black by `amt` (0..1). Used to derive a
+ *  same-hue vignette edge and avatar gradient shading from a single
+ *  configured color, so nothing new has to be added to categoryScenes.ts. */
+function shade(hex: string, amt: number) {
+  return mixColors(hex, "#000000", amt);
+}
+
+function withAlpha(hex: string, alpha: number) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** Fine film-grain texture, blended over the flat background so it reads as
+ *  a considered surface rather than a plain color fill. Pure CSS/SVG — no
+ *  extra DOM nodes. */
+const NOISE_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>`;
+const NOISE_URL = `url("data:image/svg+xml,${encodeURIComponent(NOISE_SVG)}")`;
+
+/** Scattered positions (% of stage) for the slow-drifting light motes that
+ *  live in the gaps between cards — spread toward the edges/corners the
+ *  pulled-in cards never occupy, never near dead-center where the word
+ *  sits. Each gets its own timing so the motion never repeats in sync. */
+const AMBIENT_PARTICLES = [
+  { left: 8, top: 18, duration: 13, delay: -2 },
+  { left: 92, top: 22, duration: 16, delay: -6 },
+  { left: 14, top: 72, duration: 14, delay: -9 },
+  { left: 88, top: 68, duration: 18, delay: -1 },
+  { left: 50, top: 12, duration: 15, delay: -11 },
+  { left: 6, top: 46, duration: 17, delay: -4 },
+  { left: 95, top: 48, duration: 12, delay: -7 },
+];
+
+/**
+ * Fills the negative space between the section's cards with quiet, slow
+ * motion instead of more content: a faint rotating orbit ring (echoes the
+ * brand's circle/community mark), a few softly breathing glow blooms
+ * tucked into the corners the pulled-in cards never reach, and a handful
+ * of light motes drifting past. All decorative, all behind the cards
+ * (z-index below them), and all disabled under prefers-reduced-motion.
+ */
+function AmbientDecor({ accent, presence }: { accent: string; presence: number }) {
+  return (
+    <div
+      className="absolute inset-0 overflow-hidden"
+      style={{ opacity: presence, zIndex: 1, pointerEvents: "none" }}
+    >
+      <svg
+        className="orbit-ring absolute left-1/2 top-1/2"
+        viewBox="0 0 100 100"
+        style={{ width: "min(80vmin, 860px)", height: "min(80vmin, 860px)" }}
+      >
+        <circle cx="50" cy="50" r="46" fill="none" stroke={accent} strokeOpacity="0.24" strokeWidth="0.15" strokeDasharray="0.6 2.6" />
+        <circle cx="50" cy="50" r="35" fill="none" stroke={accent} strokeOpacity="0.15" strokeWidth="0.1" strokeDasharray="0.3 3.2" />
+      </svg>
+
+      <div className="ambient-orb ambient-orb--a" style={{ background: accent }} />
+      <div className="ambient-orb ambient-orb--b" style={{ background: accent }} />
+      <div className="ambient-orb ambient-orb--c" style={{ background: accent }} />
+
+      {AMBIENT_PARTICLES.map((p, i) => (
+        <span
+          key={i}
+          className="ambient-particle"
+          style={{
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            background: accent,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /**
  * Remaps a category-wide `groupPresence` (0..1) into a per-card presence
  * that starts its own ramp slightly later than the card before it, so a
@@ -123,15 +199,29 @@ function TestimonialCard({
         pointerEvents: presence > 0.5 ? "auto" : "none",
       }}
     >
-      <div className="rounded-2xl bg-white shadow-2xl shadow-black/40 p-6 sm:p-7 flex gap-4 items-start">
+      <div
+        className="testimonial-card relative rounded-[20px] p-6 sm:p-7 flex gap-4 items-start overflow-hidden"
+        style={
+          {
+            backgroundColor: "#fdfcf8",
+            border: "1px solid rgba(0,0,0,0.06)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.06), 0 16px 32px -10px rgba(0,0,0,0.32), 0 30px 60px -20px rgba(0,0,0,0.35)",
+            "--tm-accent": avatarColor,
+          } as React.CSSProperties
+        }
+      >
         {/* Swap this div for <OptimizedImage src={card.avatarSrc} .../> once real avatar photos are ready */}
         <div
           className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-sm sm:text-base font-bold text-white"
-          style={{ backgroundColor: avatarColor }}
+          style={{
+            background: `linear-gradient(135deg, ${avatarColor}, ${shade(avatarColor, 0.35)})`,
+            boxShadow: "0 0 0 3px rgba(255,255,255,0.65), 0 4px 10px rgba(0,0,0,0.22)",
+          }}
         >
           {card.avatarInitials}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 relative">
           <p
             className="font-serif text-[13px] sm:text-[16px] leading-snug text-neutral-900"
             style={{
@@ -144,10 +234,10 @@ function TestimonialCard({
             <span className="font-bold not-italic">'{card.headline}</span>{" "}
             <span className="italic font-normal text-neutral-700">{card.body}'</span>
           </p>
-          <p className="mt-3 text-[13px] sm:text-base font-bold text-neutral-900 truncate">
+          <p className="mt-4 text-[13px] sm:text-base font-bold text-neutral-900 tracking-tight truncate">
             {card.name}
           </p>
-          <p className="text-[10px] sm:text-xs tracking-wide uppercase text-neutral-500 leading-snug">
+          <p className="text-[10px] sm:text-xs tracking-[0.15em] uppercase text-neutral-500 leading-snug">
             {card.subtitle}
           </p>
         </div>
@@ -188,18 +278,42 @@ export default function SectionThree() {
     lenis.scrollTo(target, { duration: 1.1 });
   };
 
-  // Background is a single continuous color, eased through the same
-  // crossfade window as the cards — no separate sliding panel, no pop.
-  const background = useMemo(() => {
+  // Background + accent are eased through the same crossfade window as the
+  // cards — one continuous surface, no separate sliding panel, no pop.
+  const sceneVisual = useMemo(() => {
     const idx = activeIndex;
     const nextIdx = Math.min(count - 1, idx + 1);
-    if (idx === nextIdx) return CATEGORY_SCENES[idx].background;
+    const cur = CATEGORY_SCENES[idx];
+    if (idx === nextIdx) return { bg: cur.background, accent: cur.accent };
     const local = segments[idx].local;
     const transitionStart = 1 - CROSSFADE_FRACTION;
-    if (local <= transitionStart) return CATEGORY_SCENES[idx].background;
+    if (local <= transitionStart) return { bg: cur.background, accent: cur.accent };
     const w = ease(clamp01((local - transitionStart) / CROSSFADE_FRACTION));
-    return mixColors(CATEGORY_SCENES[idx].background, CATEGORY_SCENES[nextIdx].background, w);
+    const next = CATEGORY_SCENES[nextIdx];
+    return {
+      bg: mixColors(cur.background, next.background, w),
+      accent: mixColors(cur.accent, next.accent, w),
+    };
   }, [activeIndex, count, segments]);
+
+  // Compose the flat background into a considered surface: fine grain for
+  // texture, a warm glow of the category's own accent pooling behind the
+  // giant word, a same-hue vignette for depth, and a soft top/bottom fade so
+  // the pinned panel blends into the sections around it. All on the one
+  // existing panel element — no extra layers added to the page.
+  const panelStyle = useMemo<React.CSSProperties>(() => {
+    const edge = shade(sceneVisual.bg, 0.32);
+    const vignette = `radial-gradient(130% 110% at 50% 65%, ${sceneVisual.bg} 0%, ${edge} 100%)`;
+    const glow = `radial-gradient(55% 45% at 50% 92%, ${withAlpha(sceneVisual.accent, 0.32)} 0%, rgba(0,0,0,0) 70%)`;
+    const edgeFade =
+      "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 14%, rgba(0,0,0,0) 86%, rgba(0,0,0,0.35) 100%)";
+    return {
+      backgroundColor: sceneVisual.bg,
+      backgroundImage: `${NOISE_URL}, ${edgeFade}, ${glow}, ${vignette}`,
+      backgroundBlendMode: "overlay, normal, soft-light, normal",
+      backgroundSize: "160px 160px, 100% 100%, 100% 100%, 100% 100%",
+    };
+  }, [sceneVisual]);
 
   return (
     <div className="relative w-full">
@@ -213,7 +327,7 @@ export default function SectionThree() {
       >
         <div
           className="sticky top-0 h-screen w-full overflow-hidden"
-          style={{ backgroundColor: background }}
+          style={panelStyle}
         >
           {CATEGORY_SCENES.map((scene, i) => {
             const seg = segments[i];
@@ -226,6 +340,8 @@ export default function SectionThree() {
                 className="absolute inset-0"
                 style={{ pointerEvents: i === activeIndex ? "auto" : "none" }}
               >
+                <AmbientDecor accent={scene.accent} presence={seg.presence} />
+
                 {cards
                   .filter((c) => c.layer === "back")
                   .map((c, idx) => (
@@ -243,8 +359,15 @@ export default function SectionThree() {
                   style={{ zIndex: 20, opacity: seg.presence }}
                 >
                   <h2
-                    className="font-sans font-extrabold leading-[0.85] tracking-tight select-none"
-                    style={{ color: scene.textColor, fontSize: "clamp(3.5rem, 11vw, 10.5rem)" }}
+                    className="font-sans font-extrabold leading-[0.85] select-none"
+                    style={{
+                      color: scene.textColor,
+                      fontSize: "clamp(3.5rem, 11vw, 10.5rem)",
+                      letterSpacing: "-0.03em",
+                      WebkitTextStrokeWidth: "1px",
+                      WebkitTextStrokeColor: withAlpha(scene.accent, 0.55),
+                      textShadow: `0 1px 0 rgba(0,0,0,0.08), 0 30px 50px rgba(0,0,0,0.28)`,
+                    }}
                   >
                     {scene.word}
                   </h2>

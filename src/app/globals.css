@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 @layer base {
+
   /* Lenis Smooth Scroll CSS Rules */
-  html.lenis, html.lenis body {
+  html.lenis,
+  html.lenis body {
     height: auto;
   }
 
@@ -61,4 +63,19 @@
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   perspective: 1000px;
+}
+
+/* Section Three testimonial cards — oversized corner quote mark, tinted
+   per-scene via the --tm-accent custom property set inline on the card. */
+.testimonial-card::before {
+  content: "\201C";
+  position: absolute;
+  top: -0.3em;
+  right: 0.6rem;
+  font-family: var(--font-serif), serif;
+  font-size: 4.75rem;
+  line-height: 1;
+  color: var(--tm-accent, #000);
+  opacity: 0.14;
+  pointer-events: none;
 }
