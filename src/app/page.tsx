@@ -23,7 +23,7 @@ export default function HomePage() {
         </div>
 
         {/* Section 2 Card Content (z-10, sticky top-0) */}
-        <div className="sticky top-0 z-10 min-h-screen w-full bg-neutral-950 text-white pb-8 overflow-hidden">
+        <div className="sticky top-0 z-10 min-h-screen w-full bg-neutral-950 text-white flex items-center justify-center overflow-hidden">
           <OverlappingNarrativeSection />
         </div>
 
