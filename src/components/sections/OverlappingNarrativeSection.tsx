@@ -17,98 +17,98 @@ const items: CarouselItem[] = [
   {
     id: "01",
     image:
-      "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=1000&auto=format&fit=crop",
-    alt: "Street style sneakers",
-    tag: "STREET / IDENTITY",
-    title: "MOMENTUM",
+      "/images/3dCorousal/home3.jpeg",
+    alt: "Online Journey",
+    tag: "Online Journey",
+    title: "Online Journey",
   },
   {
     id: "02",
     image:
-      "https://images.unsplash.com/photo-1487017159836-4e23ece2e4cf?q=80&w=1000&auto=format&fit=crop",
-    alt: "Geometric architectural facade",
-    tag: "PRODUCT / SYSTEM",
-    title: "PRISM",
+      "/images/3dCorousal/home2.jpg",
+    alt: "Live Events",
+    tag: "Live Events",
+    title: "Live Events",
   },
   {
     id: "03",
     image:
-      "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=1000&auto=format&fit=crop",
-    alt: "Sculptural pavilion architecture",
-    tag: "ARCHITECTURE / FORM",
-    title: "ELYSIUM",
+      "/images/3dCorousal/home1.jpg",
+    alt: "Life Mentoring",
+    tag: "Life Mentoring",
+    title: "Life Mentoring",
   },
   {
     id: "04",
     image:
-      "https://images.unsplash.com/photo-1567016526105-22da7c13161a?q=80&w=1000&auto=format&fit=crop",
-    alt: "Colorful packaging design",
-    tag: "PACKAGING / COLOR",
-    title: "SPECTRA",
+      "/images/3dCorousal/home3.jpeg",
+    alt: "Online Journey",
+    tag: "Online Journey",
+    title: "Online Journey",
   },
   {
     id: "05",
     image:
-      "https://images.unsplash.com/photo-1620121692029-d088224ddc74?q=80&w=1000&auto=format&fit=crop",
-    alt: "Abstract glass and liquid art",
-    tag: "ABSTRACT / MOTION",
-    title: "LIQUID",
+      "/images/3dCorousal/home2.jpg",
+    alt: "Live Events",
+    tag: "Live Events",
+    title: "Live Events",
   },
   {
     id: "06",
     image:
-      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1000&auto=format&fit=crop",
-    alt: "Modern interior furniture design",
-    tag: "INTERIOR / FORM",
-    title: "MERIDIAN",
+      "/images/3dCorousal/home1.jpg",
+    alt: "Life Mentoring",
+    tag: "Life Mentoring",
+    title: "Life Mentoring",
   },
   {
     id: "07",
     image:
-      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1000&auto=format&fit=crop",
-    alt: "Minimal workspace desk setup",
-    tag: "DIGITAL / SYSTEM",
-    title: "AXIOM",
+      "/images/3dCorousal/home3.jpeg",
+    alt: "Online Journey",
+    tag: "Online Journey",
+    title: "Online Journey",
   },
   {
     id: "08",
     image:
-      "https://images.unsplash.com/photo-1558611848-73f7eb4001a1?q=80&w=1000&auto=format&fit=crop",
-    alt: "Colorful abstract sneaker render",
-    tag: "PRODUCT / FORM",
-    title: "VERTEX",
+      "/images/3dCorousal/home2.jpg",
+    alt: "Live Events",
+    tag: "Live Events",
+    title: "Live Events",
   },
   {
     id: "09",
     image:
-      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1000&auto=format&fit=crop",
-    alt: "Modern chair studio shot",
-    tag: "STUDIO / OBJECT",
-    title: "CONTOUR",
+      "/images/3dCorousal/home1.jpg",
+    alt: "Life Mentoring",
+    tag: "Life Mentoring",
+    title: "Life Mentoring",
   },
   {
     id: "10",
     image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1000&auto=format&fit=crop",
-    alt: "Deep blue gradient abstract surface",
-    tag: "DIGITAL / ATMOSPHERE",
-    title: "HALCYON",
+      "/images/3dCorousal/home3.jpeg",
+    alt: "Online Journey",
+    tag: "Online Journey",
+    title: "Online Journey",
   },
   {
     id: "11",
     image:
-      "https://images.unsplash.com/photo-1618221118493-9cfa1a38c0a8?q=80&w=1000&auto=format&fit=crop",
-    alt: "Minimalist product still life",
-    tag: "STILL LIFE / OBJECT",
-    title: "AURELIA",
+      "/images/3dCorousal/home2.jpg",
+    alt: "Live Events",
+    tag: "Live Events",
+    title: "Live Events",
   },
   {
     id: "12",
     image:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1000&auto=format&fit=crop",
-    alt: "Warm toned architectural interior",
-    tag: "INTERIOR / LIGHT",
-    title: "EMBER",
+      "/images/3dCorousal/home1.jpg",
+    alt: "Life Mentoring",
+    tag: "Life Mentoring",
+    title: "Life Mentoring",
   },
 ];
 
@@ -236,20 +236,17 @@ export default function OverlappingNarrativeSection() {
               transition={{ duration: 0.45, ease: [0.215, 0.61, 0.355, 1] }}
               className="flex flex-col items-center gap-6 sm:gap-8"
             >
-              <h3 className="font-sans text-5xl sm:text-7xl md:text-8xl font-black uppercase tracking-tight text-white text-center drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]">
+              <h3 className="font-sans text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white text-center drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]">
                 {items[activeIndex].title}
               </h3>
 
-              <button className="pointer-events-auto px-6 sm:px-8 py-3 rounded-full bg-white text-black text-xs sm:text-sm font-bold uppercase tracking-[0.15em] hover:bg-amber-200 transition-colors">
-                View Case
-              </button>
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
 
       {/* Prev / Next controls */}
-      <div className="flex items-center gap-4 mt-2 sm:mt-4 z-30">
+      <div className="flex items-center gap-4 mt-2 sm:mt-10 z-30">
         <button
           aria-label="Previous"
           onClick={goPrev}

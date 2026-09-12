@@ -6,46 +6,58 @@ import ScrollReveal from "../ui/ScrollReveal";
 
 export default function SectionFour() {
     return (
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 sm:py-10 flex flex-col justify-between min-h-[calc(100vh-60px)] space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 sm:py-10 flex flex-col justify-center min-h-[calc(100vh-60px)]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-14 items-center">
 
-                {/* Card 1 */}
-                <ScrollReveal direction="up" delay={0.2}>
-                    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60 p-6 space-y-4 hover:border-amber-400/50 transition-all duration-500">
-                        <div className="aspect-[16/9] relative w-full overflow-hidden rounded-xl">
-                            <OptimizedImage
-                                src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1200&auto=format&fit=crop"
-                                alt="Lisbon Retreat"
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-700"
-                            />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs text-amber-400 font-mono">LISBON / PORTUGAL</span>
-                            <h4 className="font-serif text-lg sm:text-xl font-bold text-white group-hover:text-amber-200 transition-colors">
-                                Coastal Founders Circle
-                            </h4>
-                        </div>
+                {/* Portrait */}
+                <ScrollReveal direction="up" delay={0.15}>
+                    <div className="relative w-full aspect-[4/5] md:aspect-[3/4] overflow-hidden rounded-2xl border border-white/10">
+                        <OptimizedImage
+                            src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop"
+                            alt="Gregorio Avanzini"
+                            fill
+                            className="object-cover"
+                        />
                     </div>
                 </ScrollReveal>
 
-                {/* Card 2 */}
-                <ScrollReveal direction="up" delay={0.35}>
-                    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60 p-6 space-y-4 hover:border-amber-400/50 transition-all duration-500">
-                        <div className="aspect-[16/9] relative w-full overflow-hidden rounded-xl">
-                            <OptimizedImage
-                                src="https://images.unsplash.com/photo-1519677100203-a0e668c92439?q=80&w=1200&auto=format&fit=crop"
-                                alt="Marrakech Summit"
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-700"
-                            />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs text-amber-400 font-mono">MARRAKECH / MOROCCO</span>
-                            <h4 className="font-serif text-lg sm:text-xl font-bold text-white group-hover:text-amber-200 transition-colors">
-                                Desert Vision Summit
-                            </h4>
-                        </div>
+                {/* Bio copy */}
+                <ScrollReveal direction="up" delay={0.3}>
+                    <div className="space-y-6">
+                        <span className="text-xs sm:text-sm text-amber-400 font-mono tracking-[0.25em] uppercase">
+                            Meet
+                        </span>
+
+                        <h3 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-tight text-white">
+                            Gregorio Avanzini
+                        </h3>
+
+                        <p className="text-sm sm:text-base leading-relaxed text-neutral-300">
+                            Gregorio is a <strong className="text-white">Fulbright Scholar</strong>, a{" "}
+                            <strong className="text-white">spiritual activator</strong>, a{" "}
+                            <strong className="text-white">transformational coach</strong>, and the{" "}
+                            <strong className="text-white">founder</strong> of the{" "}
+                            <strong className="text-white">Breath of One</strong>. He explored{" "}
+                            <strong className="text-white">70 countries</strong> and attended over{" "}
+                            <strong className="text-white">80 retreats</strong>, often teaching,
+                            always learning. He <strong className="text-white">spoke on stages</strong>{" "}
+                            all around the world, bringing the{" "}
+                            <strong className="text-white">Breath of One</strong> to over{" "}
+                            <strong className="text-white">8,500 people</strong>. After receiving his{" "}
+                            <strong className="text-white">Masters of Architecture</strong> from the{" "}
+                            <strong className="text-white">University of Michigan</strong>, where he
+                            also assisted in <strong className="text-white">teaching</strong>, he
+                            paused his academic career to{" "}
+                            <strong className="text-white">follow his heart</strong> and{" "}
+                            <strong className="text-white">embrace a new life</strong>. Trusting his
+                            intuition, he took a{" "}
+                            <strong className="text-white">leap of faith</strong> and created the{" "}
+                            <strong className="text-white">life of his wildest dreams</strong>.
+                        </p>
+
+                        <button className="group inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-[0.2em] text-white border-b border-white/40 pb-1 hover:text-amber-200 hover:border-amber-200 transition-colors">
+                            Read More
+                        </button>
                     </div>
                 </ScrollReveal>
 

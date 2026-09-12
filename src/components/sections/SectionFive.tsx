@@ -6,44 +6,64 @@ import ScrollReveal from "../ui/ScrollReveal";
 
 export default function SectionFive() {
     return (
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 sm:py-8 flex flex-col justify-between space-y-6">
-            <div className="space-y-3">
-                <ScrollReveal direction="down">
-                    <span className="text-xs uppercase tracking-[0.3em] text-amber-400 font-semibold">
-                        05 // THE LEGACY
-                    </span>
-                </ScrollReveal>
+        <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 sm:py-8 flex flex-col justify-between space-y-10">
 
+            {/* Bio block */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-14 items-center">
+
+                {/* Portrait */}
                 <ScrollReveal direction="up" delay={0.15}>
-                    <h3 className="font-serif text-2xl sm:text-4xl md:text-5xl font-bold uppercase leading-tight max-w-4xl">
-                        What Begins As A Room <br />
-                        <span className="italic font-light text-neutral-400">Becomes A Way Of Working.</span>
-                    </h3>
-                </ScrollReveal>
-            </div>
-
-            {/* Feature Visual Grid */}
-            <ScrollReveal direction="up" delay={0.3}>
-                <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60 p-6 md:p-8 space-y-4 hover:border-amber-400/50 transition-all duration-500">
-                    <div className="aspect-[21/9] relative w-full overflow-hidden rounded-xl">
+                    <div className="relative w-full aspect-[4/5] md:aspect-[3/4] overflow-hidden rounded-2xl border border-white/10">
                         <OptimizedImage
-                            src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1600&auto=format&fit=crop"
-                            alt="Swiss Alps Summit"
+                            src="/images/founder/founder.jpg"
+                            alt="Gregorio Avanzini"
                             fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-700"
+                            className="object-cover"
                         />
                     </div>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div>
-                            <span className="text-xs text-amber-400 font-mono">ZERMATT / SWITZERLAND</span>
-                            <h4 className="font-serif text-xl sm:text-2xl font-bold text-white">
-                                Summit Legacy Council
-                            </h4>
-                        </div>
-                        <span className="text-xs font-mono text-neutral-400">05 // GREGORIO EXPEDITION</span>
+                </ScrollReveal>
+
+                {/* Bio copy */}
+                <ScrollReveal direction="up" delay={0.3}>
+                    <div className="space-y-6">
+                        <span className="text-xs sm:text-sm text-amber-400 font-mono tracking-[0.25em] uppercase">
+                            Meet
+                        </span>
+
+                        <h3 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-tight text-white">
+                            Gregorio Avanzini
+                        </h3>
+
+                        <p className="text-sm sm:text-base leading-relaxed text-neutral-300">
+                            Gregorio is a <strong className="text-white">Fulbright Scholar</strong>, a{" "}
+                            <strong className="text-white">spiritual activator</strong>, a{" "}
+                            <strong className="text-white">transformational coach</strong>, and the{" "}
+                            <strong className="text-white">founder</strong> of the{" "}
+                            <strong className="text-white">Breath of One</strong>. He explored{" "}
+                            <strong className="text-white">70 countries</strong> and attended over{" "}
+                            <strong className="text-white">80 retreats</strong>, often teaching,
+                            always learning. He <strong className="text-white">spoke on stages</strong>{" "}
+                            all around the world, bringing the{" "}
+                            <strong className="text-white">Breath of One</strong> to over{" "}
+                            <strong className="text-white">8,500 people</strong>. After receiving his{" "}
+                            <strong className="text-white">Masters of Architecture</strong> from the{" "}
+                            <strong className="text-white">University of Michigan</strong>, where he
+                            also assisted in <strong className="text-white">teaching</strong>, he
+                            paused his academic career to{" "}
+                            <strong className="text-white">follow his heart</strong> and{" "}
+                            <strong className="text-white">embrace a new life</strong>. Trusting his
+                            intuition, he took a{" "}
+                            <strong className="text-white">leap of faith</strong> and created the{" "}
+                            <strong className="text-white">life of his wildest dreams</strong>.
+                        </p>
+
+                        <button className="group inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-[0.2em] text-white border-b border-white/40 pb-1 hover:text-amber-200 hover:border-amber-200 transition-colors">
+                            Read More
+                        </button>
                     </div>
-                </div>
-            </ScrollReveal>
+                </ScrollReveal>
+
+            </div>
         </div>
     );
 }

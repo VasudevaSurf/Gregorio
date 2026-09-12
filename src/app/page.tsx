@@ -1,7 +1,6 @@
 import HeroSection from "@/components/sections/HeroSection";
 import OverlappingNarrativeSection from "@/components/sections/OverlappingNarrativeSection";
 import SectionThree from "@/components/sections/SectionThree";
-import SectionFour from "@/components/sections/SectionFour";
 import SectionFive from "@/components/sections/SectionFive";
 
 export default function HomePage() {
@@ -62,11 +61,6 @@ export default function HomePage() {
                   WORLD
                 </h2>
               </div>
-            </div>
-
-            {/* Section 4 Card Content (z-10) */}
-            <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-10 h-[calc(100vh-144px)] sm:h-[calc(100vh-192px)] md:h-[calc(100vh-240px)] w-full bg-neutral-950 text-white pb-8 overflow-hidden">
-              <SectionFour />
             </div>
 
             {/* Section 5 Container */}
