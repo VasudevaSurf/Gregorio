@@ -99,17 +99,27 @@ export function getCardTransform(
 ): CardTransform {
     const t = clamp01(raw);
 
-    const yTravel = card.from.y * CARD_TRAVEL_SCALE;
-    const xTravel = card.from.x * CARD_TRAVEL_SCALE * 0.4;
-    // Linear across the full pin window, scaled per-card by `speed` so
-    // cards don't all move in lockstep — some drift faster/slower.
+    // Every card now travels on the same vertical axis: it starts below its
+    // resting spot (positive y = pushed down, i.e. "from the bottom") and
+    // ends above it (negative y = pushed up, i.e. exits off the top) as
+    // `t` runs 0 -> 1. We use the magnitude of the card's configured
+    // `from.y` (not its sign) purely to keep each card's original travel
+    // distance/speed variety, without letting some cards start "from the
+    // top" like before.
+    const yTravel = Math.abs(card.from.y) * CARD_TRAVEL_SCALE;
     const y = (0.5 - t) * 2 * yTravel * card.speed;
-    const x = (0.5 - t) * 2 * xTravel;
+
+    // No horizontal travel at all — cards no longer drift in from the
+    // left/right sides, so the backdrop and word stay perfectly static
+    // while cards move straight up/down through it.
+    const x = 0;
 
     // Small continuous sinusoidal life so the motion doesn't feel robotic.
     const wiggle = Math.sin(t * Math.PI * 2 * card.speed + card.driftPhase) * card.driftAmplitude * 0.3;
 
-    const rotate = card.rotate + (0.5 - t) * 2 * (card.from.x >= 0 ? 6 : -6);
+    // Rotation is now just the card's fixed resting tilt — no dynamic
+    // left/right lean, since there's no horizontal motion to justify it.
+    const rotate = card.rotate;
     const scale = card.scale;
 
     return { x, y: y + wiggle, rotate, scale, opacity: 1 };

@@ -7,33 +7,6 @@ import ScrollReveal from "../ui/ScrollReveal";
 export default function SectionFour() {
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 sm:py-10 flex flex-col justify-between min-h-[calc(100vh-60px)] space-y-8">
-            {/* Editorial Headline & Statement */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                <div className="md:col-span-8 space-y-3">
-                    <ScrollReveal direction="down">
-                        <span className="text-xs uppercase tracking-[0.3em] text-amber-400 font-semibold">
-                            04 // THE GATHERING
-                        </span>
-                    </ScrollReveal>
-
-                    <ScrollReveal direction="up" delay={0.15}>
-                        <h3 className="font-serif text-2xl sm:text-4xl md:text-5xl font-bold uppercase leading-tight">
-                            People Who Build Rooms Change <br />
-                            <span className="italic font-light text-neutral-400">The People Inside Them.</span>
-                        </h3>
-                    </ScrollReveal>
-                </div>
-
-                <div className="md:col-span-4 space-y-2 text-neutral-400 text-xs sm:text-sm leading-relaxed font-light">
-                    <ScrollReveal direction="up" delay={0.3}>
-                        <p>
-                            Every circle is curated, not collected — leaders selected for how they think, not just what they have built.
-                        </p>
-                    </ScrollReveal>
-                </div>
-            </div>
-
-            {/* Dynamic Media Cards (Tuned Aspect Ratio to Fit Screen Height) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
 
                 {/* Card 1 */}

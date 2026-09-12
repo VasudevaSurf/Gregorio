@@ -4,7 +4,7 @@
  * Nothing here is hardcoded into the component — edit this file to change
  * quotes, names, sizes, positions, rotation, scale, layering or scroll
  * pacing. All 5 categories share ONE continuous pinned background; each
- * category just owns a slice of the scroll timeline and shows 4 cards.
+ * category just owns a slice of the scroll timeline and shows 5 cards.
  *
  * Coordinate system for `top`/`left` (and the implicit entry/exit derived
  * from `from`):
@@ -14,13 +14,24 @@
  *    down proportionally on smaller viewports via CSS clamp/vw).
  *  - layer: "front" cards render above the big word, "back" cards render
  *    below it.
- *  - from: the direction each card travels in from / exits back out to.
+ *  - from: cards now always travel straight up from below (see
+ *    getCardTransform in useCategoryScroll.ts) — only the magnitude of
+ *    `from.y` sets travel distance; `from.x` is unused.
  *  - speed: relative scrub speed multiplier so cards never move in lockstep.
  *  - rotate/scale: settle-state rotation (deg) and scale.
  *
- * NOTE: each scene currently repeats its 2 real testimonials into 4 card
+ * NOTE: each scene currently repeats its 2 real testimonials into 5 card
  * slots (duplicate content, different position/motion) as a placeholder —
  * swap in unique quotes per slot whenever more content is ready.
+ *
+ * AUTO-PLACED 5th CARD: every scene's 4 hand-positioned cards can leave the
+ * gap in a different spot (their widths/positions aren't identical scene to
+ * scene), so the 5th card's `top`/`left` is NOT hand-typed like the others.
+ * Each scene instead defines an `extraCard` / `extraMobileCard` with no
+ * top/left — see `findOpenSpot` below, which scans the stage for wherever
+ * that scene's other 4 cards actually leave room and places the 5th card
+ * there automatically. Edit the 4 primary cards freely; the 5th will keep
+ * re-finding an open spot rather than silently overlapping them.
  */
 
 export type CardConfig = {
@@ -58,7 +69,186 @@ export type CategoryScene = {
     mobileCards: MobileCardConfig[];
 };
 
-export const CATEGORY_SCENES: CategoryScene[] = [
+/**
+ * Everything needed to build one scene, before the 5th "extra" card has
+ * been given a position. `extraCard` / `extraMobileCard` carry every field
+ * a normal card needs EXCEPT `top`/`left` — those get filled in by
+ * `findOpenSpot` in `buildScene` below.
+ */
+type ExtraCardContent = Omit<CardConfig, "top" | "left">;
+
+type CategorySceneDraft = {
+    id: string;
+    label: string;
+    word: string;
+    background: string;
+    textColor: string;
+    accent: string;
+    cards: CardConfig[];
+    mobileCards: MobileCardConfig[];
+    extraCard: ExtraCardContent;
+    extraMobileCard: ExtraCardContent;
+};
+
+// Same reference width the component uses to turn each card's pixel
+// `width` into a percentage of the stage — kept in sync so the
+// auto-placement math reasons about the same proportions as what actually
+// renders.
+const DESKTOP_REFERENCE_WIDTH = 1440;
+
+// Assumed reference stage height (px) for turning an estimated card height
+// back into a percentage of the stage — the stage is a `100vh` panel, so
+// this is a rough 16:9-ish desktop viewport, just enough for the placement
+// heuristic to reason in the same units on both axes.
+const STAGE_REFERENCE_HEIGHT = 810;
+
+// Same CARD_SPREAD constant SectionThree.tsx uses to pull every card's
+// configured top/left in toward the center before rendering (see
+// `pulledIn` there). The placement search has to compress candidate/
+// existing positions the same way, or it ends up reasoning about where
+// cards are configured to be rather than where they actually end up.
+const CARD_SPREAD = 0.78;
+
+function pulledIn(pct: number) {
+    return 50 + (pct - 50) * CARD_SPREAD;
+}
+
+// Rough content-box metrics (in reference px, matching the desktop card
+// styling in SectionThree.tsx) used only to estimate how TALL a card's
+// text will make it — a 2-line quote and a 5-line quote at the same width
+// render very differently, and treating every card as a fixed aspect
+// ratio (the old approach) let a short new card silently collide with a
+// long-quote neighbour it "should" have cleared.
+const CARD_NON_TEXT_WIDTH = 130; // avatar + gaps + horizontal padding
+const CARD_CHARS_PER_LINE_PX = 7.5; // avg glyph width at this font size
+const CARD_LINE_HEIGHT_PX = 22;
+const CARD_MAX_LINES = 5; // matches the WebkitLineClamp in SectionThree.tsx
+const CARD_FIXED_OVERHEAD_PX = 110; // avatar row + name/subtitle + padding
+
+function estimateCardHeightPx(widthPx: number, headline: string, body: string) {
+    const usableTextWidth = Math.max(40, widthPx - CARD_NON_TEXT_WIDTH);
+    const charsPerLine = usableTextWidth / CARD_CHARS_PER_LINE_PX;
+    const totalChars = headline.length + body.length;
+    const lines = Math.min(CARD_MAX_LINES, Math.max(1, Math.ceil(totalChars / charsPerLine)));
+    return CARD_FIXED_OVERHEAD_PX + lines * CARD_LINE_HEIGHT_PX;
+}
+
+// Extra breathing room enforced around every card while searching for a
+// spot, in stage percentage points. Bigger = the 5th card keeps a wider
+// berth from its neighbours.
+const PLACEMENT_MARGIN = 3;
+
+type Box = { left: number; right: number; top: number; bottom: number };
+
+function widthPercent(px: number) {
+    return (px / DESKTOP_REFERENCE_WIDTH) * 100;
+}
+
+function heightPercent(px: number) {
+    return (px / STAGE_REFERENCE_HEIGHT) * 100;
+}
+
+/** Builds a card's estimated bounding box in the same *rendered* (post
+ *  pulledIn) coordinate space SectionThree.tsx actually draws in, using
+ *  the card's configured center, its width, and a text-length-aware
+ *  height estimate rather than a fixed aspect ratio. */
+function cardBox(
+    centerLeft: number,
+    centerTop: number,
+    widthPx: number,
+    heightPx: number
+): Box {
+    const halfWidth = widthPercent(widthPx) / 2 + PLACEMENT_MARGIN;
+    const halfHeight = heightPercent(heightPx) / 2 + PLACEMENT_MARGIN;
+    const left = pulledIn(centerLeft);
+    const top = pulledIn(centerTop);
+    return {
+        left: left - halfWidth,
+        right: left + halfWidth,
+        top: top - halfHeight,
+        bottom: top + halfHeight,
+    };
+}
+
+function overlapArea(a: Box, b: Box) {
+    const w = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+    const h = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    return w * h;
+}
+
+/**
+ * Finds an open spot on the stage for a new card, given the cards already
+ * placed in that scene. It scans a grid of candidate centers — starting
+ * with the top-right corner (the gap this layout usually leaves), then the
+ * other corners, then the whole stage as a last resort — and returns the
+ * FIRST candidate that doesn't overlap any existing card (with a margin of
+ * breathing room). If a scene is packed tightly enough that every
+ * candidate overlaps something, it falls back to whichever candidate
+ * overlaps the least, so a card is never blindly stacked on top of another.
+ *
+ * Both the existing cards and the candidate are boxed using their
+ * text-aware estimated height AND the same `pulledIn` compression the
+ * component applies at render time, so this reasons about actual on-screen
+ * space rather than the raw config numbers.
+ */
+function findOpenSpot(
+    existing: { top: number; left: number; width: number; headline: string; body: string }[],
+    newCard: { width: number; headline: string; body: string }
+): { top: number; left: number } {
+    const existingBoxes = existing.map((c) =>
+        cardBox(c.left, c.top, c.width, estimateCardHeightPx(c.width, c.headline, c.body))
+    );
+    const newCardHeight = estimateCardHeightPx(newCard.width, newCard.headline, newCard.body);
+
+    const candidates: { top: number; left: number }[] = [];
+    const add = (top: number, left: number) => candidates.push({ top, left });
+
+    // 1) Preferred: hug the top-right corner, at a few depths/insets.
+    [4, 6, 8, 10, 12, 15, 18, 22].forEach((top) => [94, 90, 86, 82].forEach((left) => add(top, left)));
+    // 2) Other three corners as secondary preference.
+    [4, 6, 8, 10, 12, 15, 18, 22].forEach((top) => [6, 10, 14, 18].forEach((left) => add(top, left)));
+    [78, 82, 86, 90, 94].forEach((top) => [6, 10, 14, 18, 82, 86, 90, 94].forEach((left) => add(top, left)));
+    // 3) General fallback grid across the whole stage.
+    for (let top = 10; top <= 90; top += 6) {
+        for (let left = 10; left <= 90; left += 6) {
+            add(top, left);
+        }
+    }
+
+    let best = candidates[0];
+    let bestOverlap = Infinity;
+
+    for (const candidate of candidates) {
+        const box = cardBox(candidate.left, candidate.top, newCard.width, newCardHeight);
+        const totalOverlap = existingBoxes.reduce((sum, b) => sum + overlapArea(box, b), 0);
+
+        if (totalOverlap === 0) return candidate; // first clean spot wins, in preference order
+        if (totalOverlap < bestOverlap) {
+            bestOverlap = totalOverlap;
+            best = candidate;
+        }
+    }
+
+    return best;
+}
+
+function buildScene(draft: CategorySceneDraft): CategoryScene {
+    const extraSpot = findOpenSpot(draft.cards, draft.extraCard);
+    const extraMobileSpot = findOpenSpot(draft.mobileCards, draft.extraMobileCard);
+
+    return {
+        id: draft.id,
+        label: draft.label,
+        word: draft.word,
+        background: draft.background,
+        textColor: draft.textColor,
+        accent: draft.accent,
+        cards: [...draft.cards, { ...draft.extraCard, ...extraSpot }],
+        mobileCards: [...draft.mobileCards, { ...draft.extraMobileCard, ...extraMobileSpot }],
+    };
+}
+
+const SCENE_DRAFTS: CategorySceneDraft[] = [
     {
         id: "decor",
         label: "Decor",
@@ -214,6 +404,38 @@ export const CATEGORY_SCENES: CategoryScene[] = [
                 driftPhase: 3.5,
             },
         ],
+        extraCard: {
+            id: "t-ronny-3",
+            headline: "A warrior of light.",
+            body: "Empowering others to reconnect to their hearts and souls.",
+            name: "Ronny Turiaf",
+            subtitle: "NBA Champion | Former LA Lakers Player",
+            avatarInitials: "RT",
+            width: 230,
+            layer: "front",
+            rotate: 4,
+            scale: 0.88,
+            from: { x: 0, y: 150 },
+            speed: 1.05,
+            driftAmplitude: 10,
+            driftPhase: 0.9,
+        },
+        extraMobileCard: {
+            id: "t-ronny-3-m",
+            headline: "A warrior of light.",
+            body: "Reconnect to your heart and soul.",
+            name: "Ronny Turiaf",
+            subtitle: "NBA Champion",
+            avatarInitials: "RT",
+            width: 170,
+            layer: "front",
+            rotate: 4,
+            scale: 0.88,
+            from: { x: 0, y: 100 },
+            speed: 1.05,
+            driftAmplitude: 8,
+            driftPhase: 0.9,
+        },
     },
     {
         id: "office",
@@ -370,6 +592,38 @@ export const CATEGORY_SCENES: CategoryScene[] = [
                 driftPhase: 1.1,
             },
         ],
+        extraCard: {
+            id: "t-jess-3",
+            headline: "An incredible experience.",
+            body: "Unlike anything I've ever tried.",
+            name: "Jess Lively",
+            subtitle: "Founder - The Lively Show",
+            avatarInitials: "JL",
+            width: 220,
+            layer: "front",
+            rotate: 4,
+            scale: 0.88,
+            from: { x: 0, y: 150 },
+            speed: 1.05,
+            driftAmplitude: 10,
+            driftPhase: 1.4,
+        },
+        extraMobileCard: {
+            id: "t-jess-3-m",
+            headline: "An incredible experience.",
+            body: "Unlike anything I've ever tried.",
+            name: "Jess Lively",
+            subtitle: "Founder - The Lively Show",
+            avatarInitials: "JL",
+            width: 165,
+            layer: "front",
+            rotate: 4,
+            scale: 0.88,
+            from: { x: 0, y: 100 },
+            speed: 1.05,
+            driftAmplitude: 8,
+            driftPhase: 1.4,
+        },
     },
     {
         id: "tech",
@@ -526,6 +780,38 @@ export const CATEGORY_SCENES: CategoryScene[] = [
                 driftPhase: 2.6,
             },
         ],
+        extraCard: {
+            id: "t-mark-3",
+            headline: "New heights to my life.",
+            body: "A profound way of thinking.",
+            name: "Mark Lawrence",
+            subtitle: "Founder and CEO - SpotHero",
+            avatarInitials: "ML",
+            width: 220,
+            layer: "front",
+            rotate: 4,
+            scale: 0.88,
+            from: { x: 0, y: 150 },
+            speed: 1.05,
+            driftAmplitude: 10,
+            driftPhase: 1.8,
+        },
+        extraMobileCard: {
+            id: "t-mark-3-m",
+            headline: "New heights to my life.",
+            body: "A profound way of thinking.",
+            name: "Mark Lawrence",
+            subtitle: "Founder and CEO - SpotHero",
+            avatarInitials: "ML",
+            width: 165,
+            layer: "front",
+            rotate: 4,
+            scale: 0.88,
+            from: { x: 0, y: 100 },
+            speed: 1.05,
+            driftAmplitude: 8,
+            driftPhase: 1.8,
+        },
     },
     {
         id: "furniture",
@@ -682,6 +968,38 @@ export const CATEGORY_SCENES: CategoryScene[] = [
                 driftPhase: 1.3,
             },
         ],
+        extraCard: {
+            id: "t-mario-3",
+            headline: "A wide and energetic experience.",
+            body: "A refreshing stream of emotion.",
+            name: "Mario Almondo",
+            subtitle: "GM Performance Division - Brembo S.p.A",
+            avatarInitials: "MA",
+            width: 220,
+            layer: "front",
+            rotate: 4,
+            scale: 0.88,
+            from: { x: 0, y: 150 },
+            speed: 1.05,
+            driftAmplitude: 10,
+            driftPhase: 2.5,
+        },
+        extraMobileCard: {
+            id: "t-mario-3-m",
+            headline: "A wide and energetic experience.",
+            body: "A refreshing stream of emotion.",
+            name: "Mario Almondo",
+            subtitle: "GM Performance Division",
+            avatarInitials: "MA",
+            width: 165,
+            layer: "front",
+            rotate: 4,
+            scale: 0.88,
+            from: { x: 0, y: 100 },
+            speed: 1.05,
+            driftAmplitude: 8,
+            driftPhase: 2.5,
+        },
     },
     {
         id: "lighting",
@@ -838,8 +1156,42 @@ export const CATEGORY_SCENES: CategoryScene[] = [
                 driftPhase: 1.0,
             },
         ],
+        extraCard: {
+            id: "t-andrea-3",
+            headline: "A transformational experience.",
+            body: "Rooted in science, inspiring even the most skeptical.",
+            name: "Andrea Aicaradi",
+            subtitle: "VP of Growth - Neosensory Inc.",
+            avatarInitials: "AA",
+            width: 220,
+            layer: "front",
+            rotate: 4,
+            scale: 0.88,
+            from: { x: 0, y: 150 },
+            speed: 1.05,
+            driftAmplitude: 10,
+            driftPhase: 3.0,
+        },
+        extraMobileCard: {
+            id: "t-andrea-3-m",
+            headline: "A transformational experience.",
+            body: "Rooted in science.",
+            name: "Andrea Aicaradi",
+            subtitle: "VP of Growth",
+            avatarInitials: "AA",
+            width: 165,
+            layer: "front",
+            rotate: 4,
+            scale: 0.88,
+            from: { x: 0, y: 100 },
+            speed: 1.05,
+            driftAmplitude: 8,
+            driftPhase: 3.0,
+        },
     },
 ];
+
+export const CATEGORY_SCENES: CategoryScene[] = SCENE_DRAFTS.map(buildScene);
 
 /** How many vh each category gets within the section's single scroll timeline. */
 export const SCROLL_VH_PER_CATEGORY = 100;

@@ -16,6 +16,11 @@ const DESKTOP_REFERENCE_WIDTH = 1440;
 const MOBILE_BREAKPOINT = 768;
 const CARD_SPREAD = 0.78;
 
+/** Uniform size multiplier applied to every testimonial card's configured
+ *  width. Bump this to make all cards in the section bigger/smaller
+ *  without having to touch each card's width in categoryScenes.ts. */
+const CARD_SIZE_SCALE = 1.3;
+
 /** How much of each category's own slice of the timeline (at the very
  *  start / end) is used to crossfade into / out of its neighbour. Bigger
  *  = slower, more peaceful transition. */
@@ -111,24 +116,24 @@ function TestimonialCard({
       style={{
         top: `${pulledIn(card.top)}%`,
         left: `${pulledIn(card.left)}%`,
-        width: fluidPx(card.width),
+        width: fluidPx(card.width * CARD_SIZE_SCALE),
         zIndex: card.layer === "front" ? 30 : 5,
         opacity: presence,
         transform: `translate3d(calc(-50% + ${t.x}px), calc(-50% + ${t.y}px), 0) rotate(${t.rotate}deg) scale(${t.scale * arrivalScale})`,
         pointerEvents: presence > 0.5 ? "auto" : "none",
       }}
     >
-      <div className="rounded-2xl bg-white shadow-2xl shadow-black/40 p-5 sm:p-6 flex gap-4 items-start">
+      <div className="rounded-2xl bg-white shadow-2xl shadow-black/40 p-6 sm:p-7 flex gap-4 items-start">
         {/* Swap this div for <OptimizedImage src={card.avatarSrc} .../> once real avatar photos are ready */}
         <div
-          className="shrink-0 w-11 h-11 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold text-white"
+          className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-sm sm:text-base font-bold text-white"
           style={{ backgroundColor: avatarColor }}
         >
           {card.avatarInitials}
         </div>
         <div className="min-w-0">
           <p
-            className="font-serif text-[11px] sm:text-[13px] leading-snug text-neutral-900"
+            className="font-serif text-[13px] sm:text-[16px] leading-snug text-neutral-900"
             style={{
               display: "-webkit-box",
               WebkitLineClamp: 5,
@@ -139,10 +144,10 @@ function TestimonialCard({
             <span className="font-bold not-italic">'{card.headline}</span>{" "}
             <span className="italic font-normal text-neutral-700">{card.body}'</span>
           </p>
-          <p className="mt-3 text-[11px] sm:text-sm font-bold text-neutral-900 truncate">
+          <p className="mt-3 text-[13px] sm:text-base font-bold text-neutral-900 truncate">
             {card.name}
           </p>
-          <p className="text-[8px] sm:text-[10px] tracking-wide uppercase text-neutral-500 leading-snug">
+          <p className="text-[10px] sm:text-xs tracking-wide uppercase text-neutral-500 leading-snug">
             {card.subtitle}
           </p>
         </div>
@@ -198,22 +203,6 @@ export default function SectionThree() {
 
   return (
     <div className="relative w-full">
-      <nav className="sticky top-4 sm:top-6 z-40 flex flex-wrap justify-center gap-2 px-4">
-        {CATEGORY_SCENES.map((scene, i) => (
-          <button
-            key={scene.id}
-            onClick={() => jumpToCategory(i)}
-            className={cn(
-              "px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition-colors duration-300",
-              i === activeIndex
-                ? "bg-white text-black border-white"
-                : "bg-black/20 text-white/80 border-white/25 hover:border-white/50"
-            )}
-          >
-            {scene.label}
-          </button>
-        ))}
-      </nav>
 
       {/* ONE tall wrapper for the entire section — the sticky panel inside
           pins exactly once, so the background never slides or swaps. */}
