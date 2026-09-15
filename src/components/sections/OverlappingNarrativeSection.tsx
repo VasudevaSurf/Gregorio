@@ -43,7 +43,7 @@ const ANGLE_STEP = 360 / TOTAL;
  * that category list. Raise this to make the scroll-through-cards feel
  * slower/longer; lower it for a snappier cycle.
  */
-const SECTION_SCROLL_VH = 320;
+const SECTION_SCROLL_VH = 1000;
 
 const titleVariants = {
   enter: (dir: number) => ({ y: dir > 0 ? 44 : -44, opacity: 0 }),

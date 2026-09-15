@@ -21,13 +21,23 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Section 2 Card Content (z-10) */}
-        <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-10 h-[calc(100vh-48px)] sm:h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] w-full bg-neutral-950 text-white flex items-center justify-center overflow-hidden">
+        {/* Section 2 Card Content (z-10) — plain wrapper only; OverlappingNarrativeSection
+            owns its own tall scroll wrapper + inner sticky panel, exactly like SectionThree
+            below. Must NOT be sticky / fixed-height / overflow-hidden here, or its extra
+            scroll runway gets clipped and Section 3 slides in before the carousel finishes. */}
+        <div className="relative z-10 w-full bg-neutral-950 text-white">
           <OverlappingNarrativeSection />
         </div>
 
-        {/* Section 3 Container */}
-        <div className="relative z-20 w-full">
+        {/* Section 3 Container — pulled up by one viewport (Header 2 + body move
+            together) so the section finishes covering the screen slightly BEFORE
+            Section 2's sticky panel would start to release (releasing always takes
+            ~1 viewport of scroll — unavoidable with CSS sticky). This way Section 2
+            is already fully hidden underneath by the time it would otherwise start
+            visibly moving, so it reads as frozen instead of drifting out from under
+            Section 3 — and Header 2 arrives at the same time as the body behind it,
+            right at Section 3's top, instead of appearing partway through. */}
+        <div className="relative z-20 w-full -mt-[100vh]">
 
           {/* Header 2 (Bottom Half of GREGORIO): Sticky at 1x header-height, z-50 */}
           <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
