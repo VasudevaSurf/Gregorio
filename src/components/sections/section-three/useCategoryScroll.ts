@@ -106,7 +106,8 @@ export function getCardTransform(
     raw: number,
     card: { from: { x: number; y: number }; rotate: number; scale: number; speed: number; driftAmplitude: number; driftPhase: number },
     sceneIndex: number = 0,
-    totalScenes: number = 5
+    totalScenes: number = 5,
+    isSmallScreen: boolean = false
 ): CardTransform {
     const sceneCenter = (sceneIndex + 0.5) / totalScenes;
     let diff = raw - sceneCenter;
@@ -116,13 +117,19 @@ export function getCardTransform(
         diff = -0.08 + (diff + 0.08) * 0.35;
     }
 
-    const yTravelPx = 5200 * (card.speed ?? 1);
+    // On small screens, cards maintain uniform speed so they never collide or drift into each other
+    const effectiveSpeed = isSmallScreen ? 1.0 : (card.speed ?? 1);
+    const yTravelPx = 5200 * effectiveSpeed;
     const y = -diff * yTravelPx;
 
-    const wiggle = Math.sin(raw * Math.PI * 8 + card.driftPhase) * card.driftAmplitude * 0.35;
+    const wiggle = isSmallScreen
+        ? 0
+        : Math.sin(raw * Math.PI * 8 + card.driftPhase) * card.driftAmplitude * 0.35;
 
-    const isVisible = Math.abs(y) < 1150;
-    const opacity = isVisible ? 1 : 0;
+    const maxDistance = 1400;
+    const fadeDistance = 350;
+    const absY = Math.abs(y);
+    const opacity = absY >= maxDistance ? 0 : clamp01((maxDistance - absY) / fadeDistance);
 
     return {
         x: 0,

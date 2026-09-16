@@ -14,43 +14,18 @@ import type { CardConfig, MobileCardConfig } from "./section-three/categoryScene
 
 const DESKTOP_REFERENCE_WIDTH = 1440;
 
-/** Below this width, the collage hands off to the simpler flow/carousel
- *  layout (see MobileSectionThree). Deliberately higher than a typical
- *  "phone" breakpoint: the collage needs real room to keep 5 independently
- *  positioned, readable cards apart, and narrow tablet/small-laptop widths
- *  don't have that room even at a reduced scale. */
-const MOBILE_BREAKPOINT = 1024;
-
-/** Floor for the collage's responsive scale (see useResponsiveScale) — the
- *  scale factor never drops below what the viewport is at exactly
- *  MOBILE_BREAKPOINT, since anything narrower hands off to the mobile
- *  layout anyway. Keeps cards from ever being asked to shrink past the
- *  point they were designed for. */
-const MIN_COLLAGE_SCALE = MOBILE_BREAKPOINT / DESKTOP_REFERENCE_WIDTH;
-
-const CARD_SPREAD = 0.88;
+const CARD_SPREAD = 0.94;
 
 /** Uniform size multiplier applied to every testimonial card's configured
- *  width. Bump this to make all cards in the section bigger/smaller
- *  without having to touch each card's width in categoryScenes.ts. */
-const CARD_SIZE_SCALE = 1.6;
+ *  width so cards breathe and maintain clean gaps across all viewports. */
+const CARD_SIZE_SCALE = 1.28;
 
-/** How much of each category's own slice of the timeline (at the very
- *  start / end) is used to crossfade into / out of its neighbour. Bigger
- *  = slower, more peaceful transition. */
-const CROSSFADE_FRACTION = 0.32;
+/** How much of each category's slice of the timeline is used to
+ *  crossfade into / out of its neighbour. */
+const CROSSFADE_FRACTION = 0.35;
 
-/** How much each card's own fade is staggered relative to its siblings,
- *  as a fraction of the group's fade window. Cards ease in one after
- *  another instead of all popping to full opacity together — this is
- *  what removes the "white splash" of 4 white cards appearing at once. */
-const CARD_STAGGER = 0.16;
-
-/** Mobile card-stack timings (see MobileCardStack). Pin lifts off first,
- *  then the card slides/drops away — matching a physical unpin-then-fall
- *  motion instead of an instant swap. */
-const PIN_LIFT_MS = 220;
-const CARD_EXIT_MS = 520;
+/** How much each card's own fade is staggered relative to its siblings. */
+const CARD_STAGGER = 0.12;
 
 /** Smoothstep easing: slow-fast-slow instead of linear, for a gentler feel. */
 function ease(x: number) {
@@ -58,45 +33,27 @@ function ease(x: number) {
   return t * t * (3 - 2 * t);
 }
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
-  return isMobile;
-}
-
 /**
- * Everything about a card — its box width, padding, avatar size, and every
- * font size — needs to shrink TOGETHER as one unit as the viewport narrows.
- * Previously only the box width scaled continuously (via a vw-based CSS
- * clamp); padding/avatar/font size only had two fixed tiers (below/above
- * 640px). That mismatch is what caused overlap at "some resolutions": a
- * card given full-size text and avatar but a continuously narrowing box
- * wraps to more lines and grows taller than its hand-placed position ever
- * accounted for, so it intrudes on its neighbour.
- *
- * This hook returns a single scale factor, derived from the ACTUAL
- * viewport width (not a fixed CSS floor), that every size in a card is
- * multiplied by — so a card at any width down to MOBILE_BREAKPOINT is
- * always a uniformly-shrunk copy of the exact layout verified at desktop
- * size, never a distorted one.
+ * Responsive scale factor that keeps cards comfortably large and 100% readable
+ * across smaller desktop, laptop, tablet, and mobile viewports.
  */
 function useResponsiveScale() {
   const [scale, setScale] = useState(1);
+
   useEffect(() => {
     const update = () => {
-      const raw = window.innerWidth / DESKTOP_REFERENCE_WIDTH;
-      setScale(Math.min(1, Math.max(MIN_COLLAGE_SCALE, raw)));
+      const w = window.innerWidth;
+      const s =
+        w >= DESKTOP_REFERENCE_WIDTH
+          ? Math.min(1.15, w / DESKTOP_REFERENCE_WIDTH)
+          : Math.max(0.58, Math.pow(w / DESKTOP_REFERENCE_WIDTH, 0.42));
+      setScale(s);
     };
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
+
   return scale;
 }
 
@@ -209,18 +166,14 @@ function staggeredPresence(groupPresence: number, index: number, total: number) 
   return ease(local);
 }
 
-/**
- * One testimonial card. Position/rotation/drift still come from
- * getCardTransform (unchanged motion logic) — `presence` now drives this
- * card's own opacity + a subtle scale-in, independent of its siblings.
- *
- * `scale` (from useResponsiveScale) drives every internal size — padding,
- * avatar, and all three font sizes — in lockstep with the box width. That's
- * the fix for the "overlaps at some resolutions" bug: previously only the
- * width shrank continuously while these were fixed at one of two sizes, so
- * a card could end up with full-size text crammed into a narrow box,
- * wrapping taller than its hand-placed neighbour expected.
- */
+const SMALL_SCREEN_POSITIONS = [
+  { top: 12, left: 22, rotate: -1.5 },
+  { top: 30, left: 78, rotate: 1.8 },
+  { top: 54, left: 50, rotate: -1 },
+  { top: 76, left: 22, rotate: 1.5 },
+  { top: 94, left: 78, rotate: -2 },
+];
+
 function TestimonialCard({
   card,
   raw,
@@ -228,6 +181,7 @@ function TestimonialCard({
   totalScenes,
   avatarColor,
   scale,
+  cardIndex = 0,
 }: {
   card: CardConfig | MobileCardConfig;
   raw: number;
@@ -235,39 +189,130 @@ function TestimonialCard({
   totalScenes: number;
   avatarColor: string;
   scale: number;
+  cardIndex?: number;
 }) {
   const t = getCardTransform(raw, card, sceneIndex, totalScenes);
 
   if (t.opacity <= 0) return null;
 
-  // Reference (desktop, scale = 1) pixel sizes for every internal metric —
-  // multiplying all of them by the same `scale` is what keeps the card
-  // looking like a clean shrink of the desktop design instead of a
-  // distorted one, at any width down to MOBILE_BREAKPOINT.
-  const pad = 36 * scale;
-  const gap = 20 * scale;
-  const radius = 0;
-  const avatarSize = 80 * scale;
-  const avatarFont = 18 * scale;
-  const headlineSize = 19 * scale;
-  const nameSize = 18 * scale;
-  const subtitleSize = 14 * scale;
+  // Desktop metrics & position
+  const pad = Math.max(16, Math.round(26 * scale));
+  const gap = Math.max(10, Math.round(15 * scale));
+  const avatarSize = Math.max(44, Math.round(62 * scale));
+  const avatarFont = Math.max(13, Math.round(15 * scale));
+  const headlineSize = Math.max(13.5, Math.round(16 * scale * 10) / 10);
+  const nameSize = Math.max(12.5, Math.round(14.5 * scale * 10) / 10);
+  const subtitleSize = Math.max(10, Math.round(11.5 * scale * 10) / 10);
+
+  const topDesk = pulledIn(card.top);
+  const leftDesk = pulledIn(card.left);
+  const rotDesk = card.rotate;
+  const cardWidthDesk = Math.round(card.width * CARD_SIZE_SCALE * scale);
+  const scaledXDesk = Math.round((card.from?.x ?? 0) * 0.12 * scale);
+  const scaledY = Math.round(t.y);
+
+  // Mobile / small screen metrics & position (Minimal Goods 3-lane staggered alignment)
+  const posMob = SMALL_SCREEN_POSITIONS[cardIndex % SMALL_SCREEN_POSITIONS.length];
 
   return (
     <div
-      className="absolute will-change-transform"
-      style={{
-        top: `${pulledIn(card.top)}%`,
-        left: `${pulledIn(card.left)}%`,
-        width: `${card.width * CARD_SIZE_SCALE * scale}px`,
-        zIndex: card.layer === "front" ? 30 : 5,
-        opacity: t.opacity,
-        transform: `translate3d(calc(-50% + ${t.x}px), calc(-50% + ${t.y}px), 0) rotate(${t.rotate}deg) scale(${t.scale})`,
-        pointerEvents: Math.abs(t.y) < 450 ? "auto" : "none",
-      }}
+      className="sec3-card-host absolute will-change-transform"
+      style={
+        {
+          "--top-m": `${posMob.top}%`,
+          "--left-m": `${posMob.left}%`,
+          "--rot-m": `${posMob.rotate}deg`,
+          "--w-m": "min(182px, 45vw)",
+          "--x-m": "0px",
+
+          "--top-d": `${topDesk}%`,
+          "--left-d": `${leftDesk}%`,
+          "--rot-d": `${rotDesk}deg`,
+          "--w-d": `${cardWidthDesk}px`,
+          "--x-d": `${scaledXDesk}px`,
+
+          "--y": `${scaledY}px`,
+          "--scale": t.scale,
+          opacity: t.opacity,
+          zIndex: card.layer === "front" ? 30 : 5,
+          pointerEvents: Math.abs(scaledY) < 500 ? "auto" : "none",
+        } as React.CSSProperties
+      }
     >
+      {/* Small resolutions (<1024px): Portrait vertical card with Minimal Goods editorial styling */}
       <div
-        className="testimonial-card relative flex items-start overflow-hidden rounded-none"
+        className="testimonial-card relative flex lg:hidden flex-col overflow-hidden"
+        style={
+          {
+            borderRadius: "0px",
+            padding: "15px 13px",
+            gap: "9px",
+            backgroundColor: "#fdfcf8",
+            backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fdfcf8 40%, #f7f4eb 100%)",
+            border: "1px solid rgba(0,0,0,0.06)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.06), 0 12px 28px -8px rgba(0,0,0,0.30)",
+            "--tm-accent": avatarColor,
+          } as React.CSSProperties
+        }
+      >
+        <div
+          className="tm-accent-bar absolute top-0 left-2 right-2 h-[3px]"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${avatarColor}, transparent)`,
+          }}
+        />
+        <div className="tm-sheen absolute inset-0 pointer-events-none" />
+
+        {/* Top: Avatar Circle + Quote Badge */}
+        <div className="flex items-center justify-between">
+          <div
+            className="tm-avatar shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-[12px]"
+            style={{
+              background: `linear-gradient(135deg, ${avatarColor}, ${shade(avatarColor, 0.35)})`,
+              boxShadow: "0 0 0 2px rgba(255,255,255,0.7), 0 2px 6px rgba(0,0,0,0.20)",
+            }}
+          >
+            {card.avatarInitials}
+          </div>
+          <span
+            className="font-serif text-neutral-400 select-none text-[20px] leading-none opacity-40"
+            aria-hidden="true"
+          >
+            “
+          </span>
+        </div>
+
+        {/* Reviewer Name & Subtitle - full card width so NEVER truncated */}
+        <div className="min-w-0">
+          <p className="font-bold text-neutral-900 text-[12px] tracking-tight leading-snug">
+            {card.name}
+          </p>
+          <p className="tracking-[0.08em] uppercase text-neutral-500 text-[8.5px] leading-snug mt-0.5">
+            {card.subtitle}
+          </p>
+        </div>
+
+        {/* Description underneath */}
+        <div className="min-w-0">
+          <p
+            className="font-serif leading-[1.35] text-neutral-900 text-[11.5px]"
+            style={{
+              display: "-webkit-box",
+              WebkitLineClamp: 4,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            <span className="font-bold not-italic">'{card.headline}</span>{" "}
+            <span className="italic font-normal text-neutral-700">{card.body}'</span>
+          </p>
+        </div>
+      </div>
+
+      {/* Desktop resolutions (>=1024px): Original horizontal card layout */}
+      <div
+        className="testimonial-card relative hidden lg:flex items-start overflow-hidden rounded-none"
         style={
           {
             borderRadius: "0px",
@@ -283,7 +328,6 @@ function TestimonialCard({
           } as React.CSSProperties
         }
       >
-        {/* Thin glowing brand-accent line along the top edge — brightens on hover */}
         <div
           className="tm-accent-bar absolute top-0 h-[3px]"
           style={{
@@ -292,29 +336,28 @@ function TestimonialCard({
             background: `linear-gradient(90deg, transparent, ${avatarColor}, transparent)`,
           }}
         />
-        {/* Diagonal sheen that sweeps across the card on hover */}
         <div className="tm-sheen absolute inset-0 pointer-events-none" />
 
-        {/* Swap this div for <OptimizedImage src={card.avatarSrc} .../> once real avatar photos are ready */}
         <div
-          className="tm-avatar shrink-0 rounded-full flex items-center justify-center font-bold text-white"
+          className="tm-avatar shrink-0 rounded-full flex items-center justify-center font-bold text-white shadow-lg"
           style={{
             width: avatarSize,
             height: avatarSize,
             fontSize: avatarFont,
             background: `linear-gradient(135deg, ${avatarColor}, ${shade(avatarColor, 0.35)})`,
-            boxShadow: "0 0 0 3px rgba(255,255,255,0.65), 0 4px 10px rgba(0,0,0,0.22)",
+            boxShadow: `0 0 0 ${Math.max(1, Math.round(3 * scale))}px rgba(255,255,255,0.65), 0 ${Math.max(1, Math.round(4 * scale))}px ${Math.max(2, Math.round(10 * scale))}px rgba(0,0,0,0.22)`,
           }}
         >
           {card.avatarInitials}
         </div>
+
         <div className="min-w-0 relative">
           <p
             className="font-serif leading-snug text-neutral-900"
             style={{
               fontSize: headlineSize,
               display: "-webkit-box",
-              WebkitLineClamp: 6,
+              WebkitLineClamp: 5,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
             }}
@@ -324,12 +367,12 @@ function TestimonialCard({
           </p>
           <p
             className="font-bold text-neutral-900 tracking-tight truncate"
-            style={{ marginTop: 16 * scale, fontSize: nameSize }}
+            style={{ marginTop: Math.round(12 * scale), fontSize: nameSize }}
           >
             {card.name}
           </p>
           <p
-            className="tracking-[0.15em] uppercase text-neutral-500 leading-snug"
+            className="tracking-[0.15em] uppercase text-neutral-500 leading-snug truncate"
             style={{ fontSize: subtitleSize }}
           >
             {card.subtitle}
@@ -340,238 +383,7 @@ function TestimonialCard({
   );
 }
 
-/**
- * Small IntersectionObserver-based reveal hook — fires the very first time
- * a stack scrolls into view, so it can fall/settle in as a whole before
- * the user starts tapping through it.
- */
-function useRevealed<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
-  const [revealed, setRevealed] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setRevealed(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.25, rootMargin: "0px 0px -10% 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  return { ref, revealed };
-}
-
-/**
- * The static inner markup for one card face — shared by every card in the
- * stack regardless of which position (front / peeking behind) it's
- * currently rendered in. Kept separate from MobileCardStack's positioning
- * logic so the two concerns (what a card looks like vs. where it sits in
- * the stack) don't get tangled.
- */
-function MobileCardFace({
-  card,
-  accent,
-}: {
-  card: CardConfig | MobileCardConfig;
-  accent: string;
-}) {
-  return (
-    <>
-      <div
-        className="tm-accent-bar absolute top-0 left-9 right-9 h-[3px] rounded-full"
-        style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
-      />
-      <div className="flex items-center gap-3">
-        <div
-          className="tm-avatar shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-base font-bold text-white"
-          style={{
-            background: `linear-gradient(135deg, ${accent}, ${shade(accent, 0.35)})`,
-            boxShadow: "0 0 0 3px rgba(255,255,255,0.65), 0 4px 10px rgba(0,0,0,0.22)",
-          }}
-        >
-          {card.avatarInitials}
-        </div>
-        <div className="min-w-0">
-          <p className="text-[14px] font-bold text-neutral-900 tracking-tight truncate">{card.name}</p>
-          <p className="text-[10px] tracking-[0.12em] uppercase text-neutral-500 leading-snug">
-            {card.subtitle}
-          </p>
-        </div>
-      </div>
-      <p
-        className="font-serif text-[15px] leading-snug text-neutral-900"
-        style={{
-          display: "-webkit-box",
-          WebkitLineClamp: 6,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-        }}
-      >
-        <span className="font-bold not-italic">'{card.headline}</span>{" "}
-        <span className="italic font-normal text-neutral-700">{card.body}'</span>
-      </p>
-    </>
-  );
-}
-
-/**
- * Mobile version of a category's testimonials: a pinned STACK, not a
- * vertical list. Only the front card is visible/interactive at a time —
- * the rest peek out from behind it, tilted and offset like notes clipped
- * together. Tapping the front card pops its pin off and sends it sliding
- * away, revealing the next card underneath. Matches the reference clip:
- * pin lifts first, then the card exits, then the next one settles into
- * the pin's grip.
- */
-function MobileCardStack({
-  cards,
-  accent,
-}: {
-  cards: (CardConfig | MobileCardConfig)[];
-  accent: string;
-}) {
-  const { ref, revealed } = useRevealed<HTMLDivElement>();
-  const [current, setCurrent] = useState(0);
-  const [phase, setPhase] = useState<"idle" | "lifting" | "exiting">("idle");
-
-  const handleTap = () => {
-    if (phase !== "idle" || cards.length <= 1) return;
-    setPhase("lifting");
-    window.setTimeout(() => setPhase("exiting"), PIN_LIFT_MS);
-    window.setTimeout(() => {
-      setCurrent((c) => (c + 1) % cards.length);
-      setPhase("idle");
-    }, PIN_LIFT_MS + CARD_EXIT_MS);
-  };
-
-  return (
-    <div
-      ref={ref}
-      className="relative mx-auto select-none"
-      style={{ width: "88%", maxWidth: 380, height: 360 }}
-    >
-      {/* Pin/clip holding the stack up — lifts off before the front card
-          exits, then re-settles onto whichever card is newly at front. */}
-      <div
-        className="absolute left-1/2 top-0 pointer-events-none"
-        style={{
-          zIndex: 60,
-          transformOrigin: "50% 100%",
-          transform: !revealed
-            ? "translate(-50%, -34px) rotate(0deg)"
-            : phase === "lifting"
-              ? "translate(-50%, -16px) rotate(-24deg)"
-              : "translate(-50%, -3px) rotate(0deg)",
-          opacity: revealed && phase !== "exiting" ? 1 : phase === "exiting" ? 0 : revealed ? 1 : 0,
-          transition:
-            "transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease",
-        }}
-      >
-        <div
-          className="w-10 h-5 rounded-[3px]"
-          style={{
-            background: `linear-gradient(180deg, ${withAlpha(accent, 0.9)}, ${withAlpha(accent, 0.55)})`,
-            boxShadow: "0 3px 6px rgba(0,0,0,0.25)",
-          }}
-        />
-      </div>
-
-      {cards.map((card, i) => {
-        const rel = (i - current + cards.length) % cards.length;
-        const isFront = rel === 0;
-        const isExitingFront = isFront && phase === "exiting";
-        const depth = Math.min(rel, 3);
-        const baseTilt = card.rotate ?? (i % 2 === 0 ? -2 : 2);
-
-        let transform: string;
-        let opacity = 1;
-        let z = 50 - depth;
-        let transition =
-          "transform 0.55s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease";
-
-        if (!revealed) {
-          // Whole stack falls in together the first time it scrolls into view.
-          transform = "translate(-50%, -70px) rotate(0deg) scale(0.94)";
-          opacity = 0;
-        } else if (isExitingFront) {
-          // Unpinned and dropping away, down and to the side.
-          transform = "translate(-96%, 64%) rotate(-18deg) scale(0.92)";
-          opacity = 0;
-          z = 70;
-          transition = `transform ${CARD_EXIT_MS}ms cubic-bezier(0.55,0,0.85,0.35), opacity ${CARD_EXIT_MS}ms ease`;
-        } else if (isFront) {
-          transform = `translate(-50%, 0%) rotate(${baseTilt}deg) scale(1)`;
-        } else {
-          // Peeking behind the front card — small alternating offset per
-          // depth so the stack fans out like clipped notes, not a flat pile.
-          const dx = depth % 2 === 0 ? 5 * depth : -5 * depth;
-          transform = `translate(calc(-50% + ${dx}px), ${-5 * depth}px) rotate(${baseTilt + depth * 2}deg) scale(${1 - depth * 0.035})`;
-        }
-
-        return (
-          <div
-            key={card.id}
-            onClick={isFront ? handleTap : undefined}
-            role={isFront ? "button" : undefined}
-            aria-label={isFront ? "Show next testimonial" : undefined}
-            className="testimonial-card absolute left-1/2 top-0 rounded-none p-5 flex flex-col gap-4 overflow-hidden"
-            style={{
-              width: "100%",
-              height: 300,
-              borderRadius: "0px",
-              backgroundColor: "#fdfcf8",
-              backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fdfcf8 40%, #f7f4eb 100%)",
-              border: "1px solid rgba(0,0,0,0.06)",
-              boxShadow:
-                "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.06), 0 16px 32px -10px rgba(0,0,0,0.32), 0 30px 60px -20px rgba(0,0,0,0.35)",
-              transform,
-              opacity,
-              zIndex: z,
-              cursor: isFront ? "pointer" : "default",
-              pointerEvents: isFront ? "auto" : "none",
-              transition,
-            }}
-          >
-            <MobileCardFace card={card} accent={accent} />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * Mobile/small-screen version of Section Three. The desktop version relies
- * on absolute-positioned, percentage-placed cards sized off a 1440px
- * reference width — that math simply doesn't hold up on a narrow phone
- * screen. Mobile instead gets, per category, a pinned STACK of cards
- * (MobileCardStack): only one testimonial is visible/tappable at a time,
- * and tapping it unpins and drops it away to reveal the next — like notes
- * pinned to a wall, taken down one at a time.
- */
-function MobileSectionThree() {
-  return (
-    <div className="relative w-full">
-      {CATEGORY_SCENES.map((scene) => (
-        <div
-          key={scene.id}
-          className="relative w-full py-16 overflow-hidden"
-          style={{ backgroundColor: scene.background }}
-        >
-          <MobileCardStack cards={scene.mobileCards} accent={scene.accent} />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function SectionThree() {
-  const isMobile = useIsMobile();
   const scale = useResponsiveScale();
   const { lenis } = useSmoothScroll();
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -583,17 +395,6 @@ export default function SectionThree() {
   // background a single pinned surface instead of re-pinning panels.
   const raw = useSceneScroll(wrapperRef);
 
-  const segments = useMemo(() => {
-    return CATEGORY_SCENES.map((_, i) => {
-      const segStart = i / count;
-      const segSize = 1 / count;
-      const local = clamp01((raw - segStart) / segSize);
-      const fadeIn = i === 0 ? 1 : clamp01(local / CROSSFADE_FRACTION);
-      const fadeOut = i === count - 1 ? 1 : clamp01((1 - local) / CROSSFADE_FRACTION);
-      return { local, presence: ease(Math.min(fadeIn, fadeOut)) };
-    });
-  }, [raw, count]);
-
   const activeIndex = Math.min(count - 1, Math.floor(raw * count));
 
   const jumpToCategory = (index: number) => {
@@ -603,18 +404,15 @@ export default function SectionThree() {
     lenis.scrollTo(target, { duration: 1.1 });
   };
 
-  // Background + accent are eased through the same crossfade window as the
-  // cards — one continuous surface, no separate sliding panel, no pop.
+  // Background + accent match the active category scene with smooth presence
   const sceneVisual = useMemo(
-    () => ({ bg: CATEGORY_SCENES[0].background, accent: CATEGORY_SCENES[0].accent }),
-    []
+    () => ({
+      bg: CATEGORY_SCENES[activeIndex]?.background ?? CATEGORY_SCENES[0].background,
+      accent: CATEGORY_SCENES[activeIndex]?.accent ?? CATEGORY_SCENES[0].accent,
+    }),
+    [activeIndex]
   );
 
-  // Compose the flat background into a considered surface: fine grain for
-  // texture, a warm glow of the category's own accent pooling behind the
-  // giant word, a same-hue vignette for depth, and a soft top/bottom fade so
-  // the pinned panel blends into the sections around it. All on the one
-  // existing panel element — no extra layers added to the page.
   const panelStyle = useMemo<React.CSSProperties>(() => {
     const edge = shade(sceneVisual.bg, 0.32);
     const vignette = `radial-gradient(130% 110% at 50% 65%, ${sceneVisual.bg} 0%, ${edge} 100%)`;
@@ -626,19 +424,37 @@ export default function SectionThree() {
       backgroundImage: `${NOISE_URL}, ${edgeFade}, ${glow}, ${vignette}`,
       backgroundBlendMode: "overlay, normal, soft-light, normal",
       backgroundSize: "160px 160px, 100% 100%, 100% 100%, 100% 100%",
+      transition: "background-color 400ms ease",
     };
   }, [sceneVisual]);
 
-  // Mobile gets the simpler, overlap-proof layout above — the pinned
-  // scroll-jacked collage below is desktop-only. All hooks above still run
-  // on every render (rules of hooks), this just swaps what gets returned.
-  if (isMobile) {
-    return <MobileSectionThree />;
-  }
-
   return (
     <div className="relative w-full">
-
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .sec3-card-host {
+              top: var(--top-m);
+              left: var(--left-m);
+              width: var(--w-m);
+              transform: translate3d(calc(-50% + var(--x-m, 0px)), calc(-50% + var(--y, 0px)), 0) rotate(var(--rot-m)) scale(var(--scale, 1));
+            }
+            @media (min-width: 640px) and (max-width: 1023px) {
+              .sec3-card-host {
+                width: min(225px, 28vw);
+              }
+            }
+            @media (min-width: 1024px) {
+              .sec3-card-host {
+                top: var(--top-d);
+                left: var(--left-d);
+                width: var(--w-d);
+                transform: translate3d(calc(-50% + var(--x-d, 0px)), calc(-50% + var(--y, 0px)), 0) rotate(var(--rot-d)) scale(var(--scale, 1));
+              }
+            }
+          `,
+        }}
+      />
       {/* ONE tall wrapper for the entire section — the sticky panel inside
           pins exactly once, so the background never slides or swaps. */}
       <div
@@ -659,7 +475,7 @@ export default function SectionThree() {
               <React.Fragment key={scene.id}>
                 {cards
                   .filter((c) => c.layer === "back")
-                  .map((c) => (
+                  .map((c, idx) => (
                     <TestimonialCard
                       key={c.id}
                       card={c}
@@ -668,12 +484,13 @@ export default function SectionThree() {
                       totalScenes={count}
                       avatarColor={scene.accent}
                       scale={scale}
+                      cardIndex={idx}
                     />
                   ))}
 
                 {cards
                   .filter((c) => c.layer === "front")
-                  .map((c) => (
+                  .map((c, idx) => (
                     <TestimonialCard
                       key={c.id}
                       card={c}
@@ -682,6 +499,7 @@ export default function SectionThree() {
                       totalScenes={count}
                       avatarColor={scene.accent}
                       scale={scale}
+                      cardIndex={idx + 2}
                     />
                   ))}
               </React.Fragment>
