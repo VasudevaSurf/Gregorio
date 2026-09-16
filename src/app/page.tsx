@@ -1,4 +1,5 @@
 import HeroSection from "@/components/sections/HeroSection";
+import BrandShowcase from "@/components/sections/BrandShowcase";
 import OverlappingNarrativeSection from "@/components/sections/OverlappingNarrativeSection";
 import SectionThree from "@/components/sections/SectionThree";
 import SectionFour from "@/components/sections/SectionFour";
@@ -10,105 +11,106 @@ export default function HomePage() {
       {/* Tier 1: Full-Screen Sticky Hero (z-0) */}
       <HeroSection />
 
-      {/* Tier 2 & Tier 3 Overlapping Deck Wrapper */}
+      {/* Tier 2+ Overlapping Deck Wrapper */}
       <div className="relative z-10 w-full transform-gpu">
 
-        {/* Header 1 (Top Half of GREGORIO): Sticky top-0, z-50 */}
+        {/* Header 1 (Top Half of GREGORIO): Sticky top-0, z-50
+            Introduces the Brand Showcase section as the first card in the deck. */}
         <div className="sticky top-0 z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden border-t border-white/15 shadow-2xl">
           <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
             <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%]">
-              GREGORIO
+              DESIGN AND LIVE
             </h2>
           </div>
         </div>
 
-        {/* Section 2 Card Content (z-10) — plain wrapper only; OverlappingNarrativeSection
-            owns its own tall scroll wrapper + inner sticky panel, exactly like SectionThree
-            below. Must NOT be sticky / fixed-height / overflow-hidden here, or its extra
-            scroll runway gets clipped and Section 3 slides in before the carousel finishes. */}
+        {/* Section 2: Brand Showcase (z-10) — short section with the dual-row
+            infinite marquee. Owns its own tall wrapper + sticky panel (same
+            pattern as every other section in this deck) so the next section
+            can slide up and cover it using -mt-[100vh]. */}
         <div className="relative z-10 w-full bg-neutral-950 text-white">
-          <OverlappingNarrativeSection />
+          <BrandShowcase />
         </div>
 
-        {/* Section 3 Container — pulled up by one viewport (Header 2 + body move
-            together) so the section finishes covering the screen slightly BEFORE
-            Section 2's sticky panel would start to release (releasing always takes
-            ~1 viewport of scroll — unavoidable with CSS sticky). This way Section 2
-            is already fully hidden underneath by the time it would otherwise start
-            visibly moving, so it reads as frozen instead of drifting out from under
-            Section 3 — and Header 2 arrives at the same time as the body behind it,
-            right at Section 3's top, instead of appearing partway through. */}
+        {/* Section 3 Container — slides up over Brand Showcase.
+            Header 2 (GREGORIO bottom) arrives with this container. */}
         <div className="relative z-20 w-full -mt-[100vh]">
 
           {/* Header 2 (Bottom Half of GREGORIO): Sticky at 1x header-height, z-50 */}
           <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
             <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
               <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%]">
-                GREGORIO
+                DESIGN AND LIVE
               </h2>
             </div>
           </div>
 
-          {/* Section 3 body — plain, unpinned wrapper. Height is just
-              whatever SectionThree's own stack of per-category sticky
-              panels naturally adds up to (5 x (100vh + CARD_SCROLL_VH)).
-              No overflow-hidden here: each category panel handles its own
-              clipping internally, and putting overflow-hidden on an
-              ancestor of a `position: sticky` element is worth avoiding
-              since it can change what the sticky element sticks relative
-              to in some browsers. */}
+          {/* Section 3 body — OverlappingNarrativeSection (3D Carousel).
+              Previously Section 2, now below both GREGORIO headers. */}
           <div className="relative z-10 w-full bg-neutral-950 text-white">
-            <SectionThree />
+            <OverlappingNarrativeSection />
           </div>
 
-          {/* Section 4 & 5 nested deck — lives inside Section 3's container so it slides up and
-              covers Section 3 exactly the way Section 3 covers Section 2 above.
-              "WORLD" is split ONE time, across Section 4 (top half) and Section 5
-              (bottom half) — the same 2-bar pattern GREGORIO uses above, instead
-              of spelling a separate third word ("THE END") with its own 2 bars.
-              That's 4 sticky bars total for this deck instead of 6. */}
-          <div className="relative z-20 w-full">
+          {/* Section 4+ Container — slides up over the 3D Carousel.
+              Header 3 (WORLD top) arrives with this container. */}
+          <div className="relative z-20 w-full -mt-[100vh]">
 
-            {/* Header 3 (Top Half of WORLD) — Section 4's header. Sticky at
-                2x header-height, stacks below Headers 1 & 2, z-50 */}
+            {/* Header 3 (Top Half of WORLD): Sticky at 2x header-height, z-50 */}
             <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden shadow-2xl">
               <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
                 <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%] whitespace-nowrap">
-                  WORLD
+                  THE LIFE OF YOUR
                 </h2>
               </div>
             </div>
 
-            {/* Section 4 Container — no header of its own beyond Header 3
-                above; the word's bottom half arrives with Section 5 instead
-                (see Header 4 below), not bundled in here too. */}
-            <div className="relative z-20 w-full">
-              <div className="min-h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4">
-                <SectionFour />
-              </div>
+            {/* Section 4 body — SectionThree (testimonial categories).
+                Previously Section 3, now below GREGORIO + WORLD top. */}
+            <div className="relative z-10 w-full bg-neutral-950 text-white">
+              <SectionThree />
             </div>
 
-            {/* Section 5 nested deck — lives inside this same wrapper, the way
-                Section 4 lives inside Section 3's, so it slides up and covers
-                Section 4 exactly the way Section 4 covers Section 3. */}
+            {/* Section 5+ nested deck — slides up over SectionThree.
+                Header 4 (WORLD bottom) arrives with this container. */}
             <div className="relative z-20 w-full">
 
-              {/* Header 4 (Bottom Half of WORLD) — Section 5's header. Completes
-                  the word Header 3 started now that Section 5 has arrived.
-                  Sticky at 3x header-height, stacks directly below Header 3, z-50 */}
+              {/* Header 4 (Bottom Half of WORLD): Sticky at 3x header-height, z-50 */}
               <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
                 <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
                   <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%] whitespace-nowrap">
-                    WORLD
+                    THE LIFE OF YOUR
                   </h2>
                 </div>
               </div>
 
-              {/* Section 5 Container (final — not sticky, nothing needs to overlay it).
-                  SectionFive now owns its own tall wrapper + sticky panel
-                  (same pattern as Section 2), so no extra height/padding here. */}
-              <div className="relative z-20 w-full bg-neutral-950 text-white shadow-2xl">
-                <SectionFive />
+              {/* Section 5 Container — SectionFour */}
+              <div className="relative z-20 w-full">
+                <div className="min-h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4">
+                  <SectionFour />
+                </div>
+              </div>
+
+              {/* Section 6 nested deck — slides up over SectionFour.
+                  Header 5 (BEYOND) arrives with this container. */}
+              <div className="relative z-20 w-full">
+
+                {/* Header 5 (BEYOND): Sticky at 4x header-height, z-50.
+                    A single full word (no split) — the final seal of the deck.
+                    Uses a subtle gradient text instead of the split-clip pattern
+                    above, since there is no matching bottom-half below it. */}
+                <div className="sticky top-[192px] sm:top-[256px] md:top-[320px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-hidden shadow-2xl">
+                  <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
+                    <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.35em] uppercase leading-none select-none whitespace-nowrap bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
+                      WILDEST DREAMS
+                    </h2>
+                  </div>
+                </div>
+
+                {/* Section 6 body (final) — SectionFive */}
+                <div className="relative z-20 w-full bg-neutral-950 text-white shadow-2xl">
+                  <SectionFive />
+                </div>
+
               </div>
 
             </div>

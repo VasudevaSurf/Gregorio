@@ -266,3 +266,72 @@
     animation: none !important;
   }
 }
+
+/* ─── Brand Showcase — Pure GPU Composited Marquee ─── */
+
+.brand-row-wrapper {
+  contain: layout paint;
+  will-change: transform;
+}
+
+.brand-marquee-left {
+  display: flex;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  animation: brand-scroll-left linear infinite;
+}
+
+.brand-marquee-right {
+  display: flex;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  animation: brand-scroll-right linear infinite;
+}
+
+/* Smooth pause on row hover */
+.brand-row-wrapper:hover .brand-marquee-left,
+.brand-row-wrapper:hover .brand-marquee-right {
+  animation-play-state: paused;
+}
+
+@keyframes brand-scroll-left {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(calc(-100% / 3), 0, 0);
+  }
+}
+
+@keyframes brand-scroll-right {
+  0% {
+    transform: translate3d(calc(-100% / 3), 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+
+/* Touch devices: disable hover 3D lift */
+@media (hover: none) {
+  .brand-luxury-plaque:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .brand-row-wrapper:hover .brand-marquee-left,
+  .brand-row-wrapper:hover .brand-marquee-right {
+    animation-play-state: running;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .brand-marquee-left,
+  .brand-marquee-right {
+    animation: none !important;
+  }
+  .brand-luxury-plaque {
+    transition: none !important;
+  }
+}

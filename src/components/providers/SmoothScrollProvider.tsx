@@ -2,6 +2,12 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import Lenis from "lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 interface SmoothScrollContextType {
   lenis: Lenis | null;
@@ -35,6 +41,15 @@ export default function SmoothScrollProvider({
 
     setLenisInstance(lenis);
 
+    // Sync Lenis with GSAP ScrollTrigger ONLY during active user scrolling (velocity !== 0)
+    // to prevent ResizeObserver layout-shift feedback loops
+    const onScroll = (e: { velocity: number }) => {
+      if (e && Math.abs(e.velocity) > 0.001) {
+        ScrollTrigger.update();
+      }
+    };
+    lenis.on("scroll", onScroll);
+
     // 2. Continuous requestAnimationFrame loop
     function updateRaf(time: number) {
       lenis.raf(time);
@@ -46,6 +61,7 @@ export default function SmoothScrollProvider({
     // 3. Cleanup on unmount
     return () => {
       if (reqIdRef.current) cancelAnimationFrame(reqIdRef.current);
+      lenis.off("scroll", onScroll);
       lenis.destroy();
     };
   }, []);

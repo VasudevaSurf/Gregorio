@@ -40,12 +40,12 @@ const ANGLE_STEP = 360 / TOTAL;
  */
 const SECTION_SCROLL_VH = 480;
 
-/** Cumulative height of the 4 stacked sticky headers (GREGORIO top/bottom +
- *  WORLD top/bottom) this panel sits below, per breakpoint. Keep these in
- *  sync with the header bar heights in page.tsx (48/64/80px each). */
+/** Cumulative height of the 5 stacked sticky headers (GREGORIO top/bottom +
+ *  WORLD top/bottom + BEYOND) this panel sits below, per breakpoint. Keep
+ *  these in sync with the header bar heights in page.tsx (48/64/80px each). */
 const HEADER_STACK_CLASS = {
-    top: "top-[192px] sm:top-[256px] md:top-[320px]",
-    height: "h-[calc(100vh-192px)] sm:h-[calc(100vh-256px)] md:h-[calc(100vh-320px)]",
+    top: "top-[240px] sm:top-[320px] md:top-[400px]",
+    height: "h-[calc(100vh-240px)] sm:h-[calc(100vh-320px)] md:h-[calc(100vh-400px)]",
 };
 
 function useIsMobile() {
@@ -75,13 +75,14 @@ export default function SectionFive() {
     const rotationStep = clamp01(raw) * (TOTAL - 1);
     const activeIndex = Math.min(TOTAL - 1, Math.round(rotationStep));
 
-    // Direction only decides which way the title swaps in/out, tracked via
-    // a ref so the comparison doesn't cause an extra render.
     const prevRawRef = useRef(0);
     const [direction, setDirection] = useState(1);
     useEffect(() => {
-        setDirection(raw >= prevRawRef.current ? 1 : -1);
-        prevRawRef.current = raw;
+        if (Math.abs(raw - prevRawRef.current) > 0.002) {
+            const nextDir = raw > prevRawRef.current ? 1 : -1;
+            setDirection((prev) => (prev !== nextDir ? nextDir : prev));
+            prevRawRef.current = raw;
+        }
     }, [raw]);
 
     // Clicking a card, or the prev/next arrows, jumps the actual page

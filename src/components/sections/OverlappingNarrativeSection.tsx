@@ -77,13 +77,14 @@ export default function OverlappingNarrativeSection() {
   const rotationStep = clamp01(raw) * (TOTAL - 1);
   const activeIndex = Math.min(TOTAL - 1, Math.round(rotationStep));
 
-  // Direction only decides which way the title swaps in/out. Tracked via a
-  // ref (not state) for the comparison so it doesn't cause an extra render.
   const prevRawRef = useRef(0);
   const [direction, setDirection] = useState(1);
   useEffect(() => {
-    setDirection(raw >= prevRawRef.current ? 1 : -1);
-    prevRawRef.current = raw;
+    if (Math.abs(raw - prevRawRef.current) > 0.002) {
+      const nextDir = raw > prevRawRef.current ? 1 : -1;
+      setDirection((prev) => (prev !== nextDir ? nextDir : prev));
+      prevRawRef.current = raw;
+    }
   }, [raw]);
 
   // Clicking a card, or the prev/next arrows, jumps the actual page scroll
@@ -121,7 +122,7 @@ export default function OverlappingNarrativeSection() {
       className="relative w-full"
       style={{ height: `calc(100vh + ${SECTION_SCROLL_VH}vh)` }}
     >
-      <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-10 h-[calc(100vh-48px)] sm:h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] w-full bg-neutral-950 text-white flex flex-col items-center justify-center overflow-hidden py-8 sm:py-10">
+      <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-10 h-[calc(100vh-96px)] sm:h-[calc(100vh-128px)] md:h-[calc(100vh-160px)] w-full bg-neutral-950 text-white flex flex-col items-center justify-center overflow-hidden py-8 sm:py-10">
         {/* 3D Carousel Stage */}
         <div
           className="relative w-full flex-1 flex items-center justify-center"

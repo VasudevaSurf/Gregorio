@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSmoothScroll } from "@/components/providers/SmoothScrollProvider";
@@ -33,8 +33,9 @@ export const CARD_SCROLL_VH = 80;
  * continuously by scroll while the backdrop itself never moves.
  */
 export function useSceneScroll(wrapperRef: React.RefObject<HTMLElement | null>) {
-    const { lenis } = useSmoothScroll();
     const [raw, setRaw] = useState(0);
+    const lastRawRef = useRef(0);
+    const rafIdRef = useRef<number | null>(null);
 
     useEffect(() => {
         const el = wrapperRef.current;
@@ -42,33 +43,41 @@ export function useSceneScroll(wrapperRef: React.RefObject<HTMLElement | null>) 
 
         const st = ScrollTrigger.create({
             trigger: el,
-            // "top top" = the exact scroll position where the sticky panel
-            // engages. "bottom bottom" = the exact scroll position where it
-            // disengages. Together they span precisely the pin duration.
             start: "top top",
             end: "bottom bottom",
-            // Tied 1:1 to scroll position via Lenis — see note elsewhere in
-            // this project on why a numeric scrub value fights Lenis's own
-            // smoothing.
             scrub: true,
-            onUpdate: (self) => setRaw(self.progress),
+            onUpdate: (self) => {
+                const p = self.progress;
+                if (Math.abs(p - lastRawRef.current) > 0.002) {
+                    lastRawRef.current = p;
+                    if (!rafIdRef.current) {
+                        rafIdRef.current = requestAnimationFrame(() => {
+                            setRaw((prev) => (Math.abs(prev - lastRawRef.current) > 0.002 ? lastRawRef.current : prev));
+                            rafIdRef.current = null;
+                        });
+                    }
+                }
+            },
         });
 
-        const onLenisScroll = () => ScrollTrigger.update();
-        lenis?.on("scroll", onLenisScroll);
+        // Set initial progress once on mount if scrolled
+        if (typeof st.progress === "number" && st.progress > 0.005) {
+            lastRawRef.current = st.progress;
+            setRaw(st.progress);
+        }
 
         const onResize = () => ScrollTrigger.refresh();
         window.addEventListener("resize", onResize);
 
-        ScrollTrigger.refresh();
-
         return () => {
-            lenis?.off("scroll", onLenisScroll);
+            if (rafIdRef.current) {
+                cancelAnimationFrame(rafIdRef.current);
+                rafIdRef.current = null;
+            }
             window.removeEventListener("resize", onResize);
             st.kill();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lenis, wrapperRef]);
+    }, [wrapperRef]);
 
     return raw;
 }
