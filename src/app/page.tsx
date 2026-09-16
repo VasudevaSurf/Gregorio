@@ -104,11 +104,11 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Section 5 Container (final — not sticky, nothing needs to overlay it) */}
-              <div className="relative z-20 w-full">
-                <div className="min-h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4">
-                  <SectionFive />
-                </div>
+              {/* Section 5 Container (final — not sticky, nothing needs to overlay it).
+                  SectionFive now owns its own tall wrapper + sticky panel
+                  (same pattern as Section 2), so no extra height/padding here. */}
+              <div className="relative z-20 w-full bg-neutral-950 text-white shadow-2xl">
+                <SectionFive />
               </div>
 
             </div>
