@@ -62,68 +62,53 @@ export default function HomePage() {
           </div>
 
           {/* Section 4 & 5 nested deck — lives inside Section 3's container so it slides up and
-              covers Section 3 exactly the way Section 3 covers Section 2 above */}
+              covers Section 3 exactly the way Section 3 covers Section 2 above.
+              "WORLD" is split ONE time, across Section 4 (top half) and Section 5
+              (bottom half) — the same 2-bar pattern GREGORIO uses above, instead
+              of spelling a separate third word ("THE END") with its own 2 bars.
+              That's 4 sticky bars total for this deck instead of 6. */}
           <div className="relative z-20 w-full">
 
-            {/* Header 3 (Top Half of WORLD): Sticky at 2x header-height, stacks below Headers 1 & 2, z-50 */}
+            {/* Header 3 (Top Half of WORLD) — Section 4's header. Sticky at
+                2x header-height, stacks below Headers 1 & 2, z-50 */}
             <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden shadow-2xl">
               <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
-                <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%]">
+                <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%] whitespace-nowrap">
                   WORLD
                 </h2>
               </div>
             </div>
 
-            {/* Section 4 Container */}
+            {/* Section 4 Container — no header of its own beyond Header 3
+                above; the word's bottom half arrives with Section 5 instead
+                (see Header 4 below), not bundled in here too. */}
+            <div className="relative z-20 w-full">
+              <div className="min-h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4">
+                <SectionFour />
+              </div>
+            </div>
+
+            {/* Section 5 nested deck — lives inside this same wrapper, the way
+                Section 4 lives inside Section 3's, so it slides up and covers
+                Section 4 exactly the way Section 4 covers Section 3. */}
             <div className="relative z-20 w-full">
 
-              {/* Header 4 (Bottom Half of WORLD): Sticky at 3x header-height, stacks below Header 3, z-50 */}
+              {/* Header 4 (Bottom Half of WORLD) — Section 5's header. Completes
+                  the word Header 3 started now that Section 5 has arrived.
+                  Sticky at 3x header-height, stacks directly below Header 3, z-50 */}
               <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
                 <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
-                  <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%]">
+                  <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%] whitespace-nowrap">
                     WORLD
                   </h2>
                 </div>
               </div>
 
-              {/* Section 4 Card Body */}
-              <div className="min-h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4">
-                <SectionFour />
-              </div>
-
-            </div>
-
-            {/* Section 5 nested deck — added the same way as Section 2: its own split
-                sticky header (this time spelling "The End" across two stacked bars),
-                living below Section 4 inside this same deck wrapper */}
-            <div className="relative z-20 w-full">
-
-              {/* Header 5 (Top Half of THE END): Sticky at 4x header-height, stacks below Header 4, z-50 */}
-              <div className="sticky top-[192px] sm:top-[256px] md:top-[320px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden shadow-2xl">
-                <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
-                  <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%]">
-                    The End
-                  </h2>
-                </div>
-              </div>
-
-              {/* Section 5 Container */}
+              {/* Section 5 Container (final — not sticky, nothing needs to overlay it) */}
               <div className="relative z-20 w-full">
-
-                {/* Header 6 (Bottom Half of THE END): Sticky at 5x header-height, stacks below Header 5, z-50 */}
-                <div className="sticky top-[240px] sm:top-[320px] md:top-[400px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
-                  <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
-                    <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%]">
-                      The End
-                    </h2>
-                  </div>
-                </div>
-
-                {/* Section 5 Card Body (final — not sticky, nothing needs to overlay it) */}
                 <div className="min-h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4">
                   <SectionFive />
                 </div>
-
               </div>
 
             </div>

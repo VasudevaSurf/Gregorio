@@ -4,7 +4,7 @@ import React from "react";
 import OptimizedImage from "../ui/OptimizedImage";
 import ScrollReveal from "../ui/ScrollReveal";
 
-export default function SectionFive() {
+export default function SectionFour() {
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 sm:py-8 flex flex-col justify-between space-y-10">
 
