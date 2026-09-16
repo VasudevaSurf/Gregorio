@@ -95,32 +95,31 @@ export interface CardTransform {
  */
 export function getCardTransform(
     raw: number,
-    card: { from: { x: number; y: number }; rotate: number; scale: number; speed: number; driftAmplitude: number; driftPhase: number }
+    card: { from: { x: number; y: number }; rotate: number; scale: number; speed: number; driftAmplitude: number; driftPhase: number },
+    sceneIndex: number = 0,
+    totalScenes: number = 5
 ): CardTransform {
-    const t = clamp01(raw);
+    const sceneCenter = (sceneIndex + 0.5) / totalScenes;
+    let diff = raw - sceneCenter;
 
-    // Every card now travels on the same vertical axis: it starts below its
-    // resting spot (positive y = pushed down, i.e. "from the bottom") and
-    // ends above it (negative y = pushed up, i.e. exits off the top) as
-    // `t` runs 0 -> 1. We use the magnitude of the card's configured
-    // `from.y` (not its sign) purely to keep each card's original travel
-    // distance/speed variety, without letting some cards start "from the
-    // top" like before.
-    const yTravel = Math.abs(card.from.y) * CARD_TRAVEL_SCALE;
-    const y = (0.5 - t) * 2 * yTravel * card.speed;
+    // For scene 0 at raw=0, clamp initial offset so cards start comfortably visible
+    if (sceneIndex === 0 && diff < -0.08) {
+        diff = -0.08 + (diff + 0.08) * 0.35;
+    }
 
-    // No horizontal travel at all — cards no longer drift in from the
-    // left/right sides, so the backdrop and word stay perfectly static
-    // while cards move straight up/down through it.
-    const x = 0;
+    const yTravelPx = 5200 * (card.speed ?? 1);
+    const y = -diff * yTravelPx;
 
-    // Small continuous sinusoidal life so the motion doesn't feel robotic.
-    const wiggle = Math.sin(t * Math.PI * 2 * card.speed + card.driftPhase) * card.driftAmplitude * 0.3;
+    const wiggle = Math.sin(raw * Math.PI * 8 + card.driftPhase) * card.driftAmplitude * 0.35;
 
-    // Rotation is now just the card's fixed resting tilt — no dynamic
-    // left/right lean, since there's no horizontal motion to justify it.
-    const rotate = card.rotate;
-    const scale = card.scale;
+    const isVisible = Math.abs(y) < 1150;
+    const opacity = isVisible ? 1 : 0;
 
-    return { x, y: y + wiggle, rotate, scale, opacity: 1 };
+    return {
+        x: 0,
+        y: y + wiggle,
+        rotate: card.rotate,
+        scale: card.scale,
+        opacity,
+    };
 }

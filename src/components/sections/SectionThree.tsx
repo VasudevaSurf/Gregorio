@@ -28,7 +28,7 @@ const MOBILE_BREAKPOINT = 1024;
  *  point they were designed for. */
 const MIN_COLLAGE_SCALE = MOBILE_BREAKPOINT / DESKTOP_REFERENCE_WIDTH;
 
-const CARD_SPREAD = 0.78;
+const CARD_SPREAD = 0.88;
 
 /** Uniform size multiplier applied to every testimonial card's configured
  *  width. Bump this to make all cards in the section bigger/smaller
@@ -224,20 +224,21 @@ function staggeredPresence(groupPresence: number, index: number, total: number) 
 function TestimonialCard({
   card,
   raw,
-  presence,
+  sceneIndex,
+  totalScenes,
   avatarColor,
   scale,
 }: {
   card: CardConfig | MobileCardConfig;
   raw: number;
-  presence: number;
+  sceneIndex: number;
+  totalScenes: number;
   avatarColor: string;
   scale: number;
 }) {
-  const t = getCardTransform(raw, card);
-  // Gentle scale-in from 0.92 -> 1 alongside the opacity fade, so cards
-  // arrive softly instead of just blinking into existence.
-  const arrivalScale = 0.92 + presence * 0.08;
+  const t = getCardTransform(raw, card, sceneIndex, totalScenes);
+
+  if (t.opacity <= 0) return null;
 
   // Reference (desktop, scale = 1) pixel sizes for every internal metric —
   // multiplying all of them by the same `scale` is what keeps the card
@@ -245,7 +246,7 @@ function TestimonialCard({
   // distorted one, at any width down to MOBILE_BREAKPOINT.
   const pad = 36 * scale;
   const gap = 20 * scale;
-  const radius = 26 * scale;
+  const radius = 0;
   const avatarSize = 80 * scale;
   const avatarFont = 18 * scale;
   const headlineSize = 19 * scale;
@@ -260,16 +261,16 @@ function TestimonialCard({
         left: `${pulledIn(card.left)}%`,
         width: `${card.width * CARD_SIZE_SCALE * scale}px`,
         zIndex: card.layer === "front" ? 30 : 5,
-        opacity: presence,
-        transform: `translate3d(calc(-50% + ${t.x}px), calc(-50% + ${t.y}px), 0) rotate(${t.rotate}deg) scale(${t.scale * arrivalScale})`,
-        pointerEvents: presence > 0.5 ? "auto" : "none",
+        opacity: t.opacity,
+        transform: `translate3d(calc(-50% + ${t.x}px), calc(-50% + ${t.y}px), 0) rotate(${t.rotate}deg) scale(${t.scale})`,
+        pointerEvents: Math.abs(t.y) < 450 ? "auto" : "none",
       }}
     >
       <div
-        className="testimonial-card relative flex items-start overflow-hidden"
+        className="testimonial-card relative flex items-start overflow-hidden rounded-none"
         style={
           {
-            borderRadius: `${radius}px`,
+            borderRadius: "0px",
             padding: `${pad}px`,
             gap: `${gap}px`,
             backgroundColor: "#fdfcf8",
@@ -284,7 +285,7 @@ function TestimonialCard({
       >
         {/* Thin glowing brand-accent line along the top edge — brightens on hover */}
         <div
-          className="tm-accent-bar absolute top-0 h-[3px] rounded-full"
+          className="tm-accent-bar absolute top-0 h-[3px]"
           style={{
             left: pad,
             right: pad,
@@ -518,10 +519,11 @@ function MobileCardStack({
             onClick={isFront ? handleTap : undefined}
             role={isFront ? "button" : undefined}
             aria-label={isFront ? "Show next testimonial" : undefined}
-            className="testimonial-card absolute left-1/2 top-0 rounded-[22px] p-5 flex flex-col gap-4 overflow-hidden"
+            className="testimonial-card absolute left-1/2 top-0 rounded-none p-5 flex flex-col gap-4 overflow-hidden"
             style={{
               width: "100%",
               height: 300,
+              borderRadius: "0px",
               backgroundColor: "#fdfcf8",
               backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fdfcf8 40%, #f7f4eb 100%)",
               border: "1px solid rgba(0,0,0,0.06)",
@@ -561,20 +563,6 @@ function MobileSectionThree() {
           className="relative w-full py-16 overflow-hidden"
           style={{ backgroundColor: scene.background }}
         >
-          <div className="px-5 mb-8">
-            <h2
-              className="font-sans font-extrabold leading-[0.85] select-none"
-              style={{
-                color: scene.textColor,
-                fontSize: "clamp(2.75rem, 16vw, 4.5rem)",
-                letterSpacing: "-0.03em",
-                WebkitTextStrokeWidth: "1px",
-                WebkitTextStrokeColor: withAlpha(scene.accent, 0.55),
-              }}
-            >
-              {scene.word}
-            </h2>
-          </div>
           <MobileCardStack cards={scene.mobileCards} accent={scene.accent} />
         </div>
       ))}
@@ -617,21 +605,10 @@ export default function SectionThree() {
 
   // Background + accent are eased through the same crossfade window as the
   // cards — one continuous surface, no separate sliding panel, no pop.
-  const sceneVisual = useMemo(() => {
-    const idx = activeIndex;
-    const nextIdx = Math.min(count - 1, idx + 1);
-    const cur = CATEGORY_SCENES[idx];
-    if (idx === nextIdx) return { bg: cur.background, accent: cur.accent };
-    const local = segments[idx].local;
-    const transitionStart = 1 - CROSSFADE_FRACTION;
-    if (local <= transitionStart) return { bg: cur.background, accent: cur.accent };
-    const w = ease(clamp01((local - transitionStart) / CROSSFADE_FRACTION));
-    const next = CATEGORY_SCENES[nextIdx];
-    return {
-      bg: mixColors(cur.background, next.background, w),
-      accent: mixColors(cur.accent, next.accent, w),
-    };
-  }, [activeIndex, count, segments]);
+  const sceneVisual = useMemo(
+    () => ({ bg: CATEGORY_SCENES[0].background, accent: CATEGORY_SCENES[0].accent }),
+    []
+  );
 
   // Compose the flat background into a considered surface: fine grain for
   // texture, a warm glow of the category's own accent pooling behind the
@@ -673,64 +650,41 @@ export default function SectionThree() {
           className="sticky top-0 h-screen w-full overflow-hidden"
           style={panelStyle}
         >
+          <AmbientDecor accent={sceneVisual.accent} presence={1} />
+
           {CATEGORY_SCENES.map((scene, i) => {
-            const seg = segments[i];
-            if (seg.presence <= 0) return null;
             const cards = scene.cards;
 
             return (
-              <div
-                key={scene.id}
-                className="absolute inset-0"
-                style={{ pointerEvents: i === activeIndex ? "auto" : "none" }}
-              >
-                <AmbientDecor accent={scene.accent} presence={seg.presence} />
-
+              <React.Fragment key={scene.id}>
                 {cards
                   .filter((c) => c.layer === "back")
-                  .map((c, idx) => (
+                  .map((c) => (
                     <TestimonialCard
                       key={c.id}
                       card={c}
-                      raw={seg.local}
-                      presence={staggeredPresence(seg.presence, idx, cards.length)}
+                      raw={raw}
+                      sceneIndex={i}
+                      totalScenes={count}
                       avatarColor={scene.accent}
                       scale={scale}
                     />
                   ))}
-
-                <div
-                  className="absolute inset-x-0 bottom-[6%] sm:bottom-[8%] px-[4%] sm:px-[5%]"
-                  style={{ zIndex: 20, opacity: seg.presence }}
-                >
-                  <h2
-                    className="font-sans font-extrabold leading-[0.85] select-none"
-                    style={{
-                      color: scene.textColor,
-                      fontSize: "clamp(3.5rem, 11vw, 10.5rem)",
-                      letterSpacing: "-0.03em",
-                      WebkitTextStrokeWidth: "1px",
-                      WebkitTextStrokeColor: withAlpha(scene.accent, 0.55),
-                      textShadow: `0 1px 0 rgba(0,0,0,0.08), 0 30px 50px rgba(0,0,0,0.28)`,
-                    }}
-                  >
-                    {scene.word}
-                  </h2>
-                </div>
 
                 {cards
                   .filter((c) => c.layer === "front")
-                  .map((c, idx) => (
+                  .map((c) => (
                     <TestimonialCard
                       key={c.id}
                       card={c}
-                      raw={seg.local}
-                      presence={staggeredPresence(seg.presence, idx, cards.length)}
+                      raw={raw}
+                      sceneIndex={i}
+                      totalScenes={count}
                       avatarColor={scene.accent}
                       scale={scale}
                     />
                   ))}
-              </div>
+              </React.Fragment>
             );
           })}
         </div>

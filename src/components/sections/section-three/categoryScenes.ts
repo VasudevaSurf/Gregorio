@@ -107,7 +107,7 @@ const STAGE_REFERENCE_HEIGHT = 810;
 // `pulledIn` there). The placement search has to compress candidate/
 // existing positions the same way, or it ends up reasoning about where
 // cards are configured to be rather than where they actually end up.
-const CARD_SPREAD = 0.78;
+const CARD_SPREAD = 0.88;
 
 function pulledIn(pct: number) {
     return 50 + (pct - 50) * CARD_SPREAD;
@@ -440,10 +440,10 @@ const SCENE_DRAFTS: CategorySceneDraft[] = [
     {
         id: "02",
         label: "02",
-        word: "02",
-        background: "#ded6c8",
-        textColor: "#2c2924",
-        accent: "#171512",
+        word: "01",
+        background: "#6b685e",
+        textColor: "#d9d5c9",
+        accent: "#f2ede0",
         cards: [
             {
                 id: "t-jess-1",
@@ -628,10 +628,10 @@ const SCENE_DRAFTS: CategorySceneDraft[] = [
     {
         id: "03",
         label: "03",
-        word: "03",
-        background: "#211f1b",
-        textColor: "#eee9dd",
-        accent: "#e7c98a",
+        word: "01",
+        background: "#6b685e",
+        textColor: "#d9d5c9",
+        accent: "#f2ede0",
         cards: [
             {
                 id: "t-mark-1",
@@ -816,10 +816,10 @@ const SCENE_DRAFTS: CategorySceneDraft[] = [
     {
         id: "04",
         label: "04",
-        word: "04",
-        background: "#e7e0d3",
-        textColor: "#211e19",
-        accent: "#8a6a4f",
+        word: "01",
+        background: "#6b685e",
+        textColor: "#d9d5c9",
+        accent: "#f2ede0",
         cards: [
             {
                 id: "t-mario-1",
@@ -1004,10 +1004,10 @@ const SCENE_DRAFTS: CategorySceneDraft[] = [
     {
         id: "05",
         label: "05",
-        word: "05",
-        background: "#22261f",
-        textColor: "#e7e3d6",
-        accent: "#c9b48a",
+        word: "01",
+        background: "#6b685e",
+        textColor: "#d9d5c9",
+        accent: "#f2ede0",
         cards: [
             {
                 id: "t-andrea-1",
