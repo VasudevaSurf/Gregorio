@@ -1,6 +1,7 @@
 import HeroSection from "@/components/sections/HeroSection";
 import OverlappingNarrativeSection from "@/components/sections/OverlappingNarrativeSection";
 import SectionThree from "@/components/sections/SectionThree";
+import SectionFour from "@/components/sections/SectionFour";
 import SectionFive from "@/components/sections/SectionFive";
 
 export default function HomePage() {
@@ -73,7 +74,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Section 5 Container */}
+            {/* Section 4 Container */}
             <div className="relative z-20 w-full">
 
               {/* Header 4 (Bottom Half of WORLD): Sticky at 3x header-height, stacks below Header 3, z-50 */}
@@ -85,9 +86,44 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Section 5 Card Body (final — not sticky, nothing needs to overlay it) */}
+              {/* Section 4 Card Body */}
               <div className="min-h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4">
-                <SectionFive />
+                <SectionFour />
+              </div>
+
+            </div>
+
+            {/* Section 5 nested deck — added the same way as Section 2: its own split
+                sticky header (this time spelling "The End" across two stacked bars),
+                living below Section 4 inside this same deck wrapper */}
+            <div className="relative z-20 w-full">
+
+              {/* Header 5 (Top Half of THE END): Sticky at 4x header-height, stacks below Header 4, z-50 */}
+              <div className="sticky top-[192px] sm:top-[256px] md:top-[320px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden shadow-2xl">
+                <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
+                  <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%]">
+                    The End
+                  </h2>
+                </div>
+              </div>
+
+              {/* Section 5 Container */}
+              <div className="relative z-20 w-full">
+
+                {/* Header 6 (Bottom Half of THE END): Sticky at 5x header-height, stacks below Header 5, z-50 */}
+                <div className="sticky top-[240px] sm:top-[320px] md:top-[400px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
+                  <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
+                    <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%]">
+                      The End
+                    </h2>
+                  </div>
+                </div>
+
+                {/* Section 5 Card Body (final — not sticky, nothing needs to overlay it) */}
+                <div className="min-h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4">
+                  <SectionFive />
+                </div>
+
               </div>
 
             </div>

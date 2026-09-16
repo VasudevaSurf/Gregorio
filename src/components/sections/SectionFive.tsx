@@ -4,18 +4,16 @@ import React from "react";
 import OptimizedImage from "../ui/OptimizedImage";
 import ScrollReveal from "../ui/ScrollReveal";
 
-export default function SectionFive() {
+export default function SectionFour() {
     return (
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 sm:py-8 flex flex-col justify-between space-y-10">
-
-            {/* Bio block */}
+        <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 sm:py-10 flex flex-col justify-center min-h-[calc(100vh-60px)]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-14 items-center">
 
                 {/* Portrait */}
                 <ScrollReveal direction="up" delay={0.15}>
                     <div className="relative w-full aspect-[4/5] md:aspect-[3/4] overflow-hidden rounded-2xl border border-white/10">
                         <OptimizedImage
-                            src="/images/founder/founder.jpg"
+                            src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop"
                             alt="Gregorio Avanzini"
                             fill
                             className="object-cover"
