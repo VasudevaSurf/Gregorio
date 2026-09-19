@@ -5,9 +5,8 @@ import Image from "next/image";
 
 /* ═══════════════════════════════════════════════════════════════════════════
  *  PAST CLIENTS / BRAND SHOWCASE — 3-TIER LUXURY IMAGE EXHIBITION
- *  Pure GPU-composited, zero-JS-overhead brand image marquee across 3 rows.
- *  Features 18 luxury brand image placements in public/images/brands/
- *  running on hardware-accelerated CSS compositor layers for silky 60-120fps.
+ *  Static (non-scrolling) brand image grid across 3 rows, so every logo
+ *  stays visible on screen rather than cycling through a marquee.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 interface BrandItem {
@@ -91,16 +90,11 @@ export default function BrandShowcase() {
           </p>
         </div>
 
-        {/* ── 3-Tier High-Performance Image Gallery ── */}
-        <div className="relative z-10 w-full flex-1 flex flex-col justify-center gap-2.5 sm:gap-3.5 md:gap-4 my-auto overflow-hidden py-1">
-          {/* Row 1: Flow Left */}
-          <BrandImageRow items={ROW_ONE} direction="left" speed={36} />
-
-          {/* Row 2: Flow Right */}
-          <BrandImageRow items={ROW_TWO} direction="right" speed={42} />
-
-          {/* Row 3: Flow Left */}
-          <BrandImageRow items={ROW_THREE} direction="left" speed={38} />
+        {/* ── Static Brand Gallery (no auto-scroll) ── */}
+        <div className="relative z-10 w-full flex-1 flex flex-col justify-center gap-2.5 sm:gap-3.5 md:gap-4 my-auto py-1">
+          <BrandImageRow items={ROW_ONE} />
+          <BrandImageRow items={ROW_TWO} />
+          <BrandImageRow items={ROW_THREE} />
         </div>
 
         {/* ── Section Footer Status ── */}
@@ -121,31 +115,20 @@ export default function BrandShowcase() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
- *  BrandImageRow Component — Pure GPU CSS Infinite Marquee
+ *  BrandImageRow Component — Static Wrapped Row
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 interface BrandImageRowProps {
   items: BrandItem[];
-  direction: "left" | "right";
-  speed: number;
 }
 
-function BrandImageRow({ items, direction, speed }: BrandImageRowProps) {
-  // Triple array for seamless infinite looping
-  const loopItems = [...items, ...items, ...items];
-
+function BrandImageRow({ items }: BrandImageRowProps) {
   return (
-    <div className="relative w-full overflow-hidden brand-row-wrapper group/row">
-      <div
-        className={`flex gap-3 sm:gap-4 md:gap-5 w-max ${direction === "left" ? "brand-marquee-left" : "brand-marquee-right"
-          }`}
-        style={{
-          animationDuration: `${speed}s`,
-        }}
-      >
-        {loopItems.map((brand, idx) => (
+    <div className="relative w-full">
+      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-5">
+        {items.map((brand, idx) => (
           <div
-            key={`${brand.id}-${idx}`}
+            key={brand.id}
             className="brand-card-item flex-shrink-0"
             style={{
               width: "clamp(180px, 18vw, 250px)",

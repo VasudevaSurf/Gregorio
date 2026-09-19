@@ -2,7 +2,6 @@ import HeroSection from "@/components/sections/HeroSection";
 import BrandShowcase from "@/components/sections/BrandShowcase";
 import OverlappingNarrativeSection from "@/components/sections/OverlappingNarrativeSection";
 import SectionThree from "@/components/sections/SectionThree";
-import SectionFour from "@/components/sections/SectionFour";
 import SectionFive from "@/components/sections/SectionFive";
 
 export default function HomePage() {
@@ -16,9 +15,9 @@ export default function HomePage() {
 
         {/* Header 1 (Top Half of GREGORIO): Sticky top-0, z-50
             Introduces the Brand Showcase section as the first card in the deck. */}
-        <div className="sticky top-0 z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden border-t border-white/15 shadow-2xl">
-          <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
-            <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%]">
+        <div className="sticky top-0 z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-hidden border-t border-white/15 shadow-2xl">
+          <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
+            <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none">
               DESIGN AND LIVE
             </h2>
           </div>
@@ -37,10 +36,10 @@ export default function HomePage() {
         <div className="relative z-20 w-full -mt-[100vh]">
 
           {/* Header 2 (Bottom Half of GREGORIO): Sticky at 1x header-height, z-50 */}
-          <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
-            <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
-              <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%]">
-                DESIGN AND LIVE
+          <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden shadow-2xl">
+            <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
+              <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%] whitespace-nowrap">
+                THE LIFE OF YOUR
               </h2>
             </div>
           </div>
@@ -56,9 +55,9 @@ export default function HomePage() {
           <div className="relative z-20 w-full -mt-[100vh]">
 
             {/* Header 3 (Top Half of WORLD): Sticky at 2x header-height, z-50 */}
-            <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden shadow-2xl">
-              <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
-                <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%] whitespace-nowrap">
+            <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
+              <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
+                <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%] whitespace-nowrap">
                   THE LIFE OF YOUR
                 </h2>
               </div>
@@ -70,47 +69,25 @@ export default function HomePage() {
               <SectionThree />
             </div>
 
-            {/* Section 5+ nested deck — slides up over SectionThree.
-                Header 4 (WORLD bottom) arrives with this container. */}
+            {/* Section 5 nested deck — slides up over SectionThree.
+                Header 4 (BEYOND) arrives with this container. */}
             <div className="relative z-20 w-full">
 
-              {/* Header 4 (Bottom Half of WORLD): Sticky at 3x header-height, z-50 */}
-              <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
-                <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
-                  <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%] whitespace-nowrap">
-                    THE LIFE OF YOUR
+              {/* Header 4 (BEYOND): Sticky at 3x header-height, z-50.
+                  A single full word (no split) — the final seal of the deck.
+                  Uses a subtle gradient text instead of the split-clip pattern
+                  above, since there is no matching bottom-half below it. */}
+              <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-hidden shadow-2xl">
+                <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
+                  <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.35em] uppercase leading-none select-none whitespace-nowrap bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
+                    WILDEST DREAMS
                   </h2>
                 </div>
               </div>
 
-              {/* Section 5 Container — SectionFour */}
-              <div className="relative z-20 w-full">
-                <div className="min-h-screen w-full bg-neutral-950 text-white shadow-2xl pb-12 pt-4">
-                  <SectionFour />
-                </div>
-              </div>
-
-              {/* Section 6 nested deck — slides up over SectionFour.
-                  Header 5 (BEYOND) arrives with this container. */}
-              <div className="relative z-20 w-full">
-
-                {/* Header 5 (BEYOND): Sticky at 4x header-height, z-50.
-                    A single full word (no split) — the final seal of the deck.
-                    Uses a subtle gradient text instead of the split-clip pattern
-                    above, since there is no matching bottom-half below it. */}
-                <div className="sticky top-[192px] sm:top-[256px] md:top-[320px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-hidden shadow-2xl">
-                  <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
-                    <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.35em] uppercase leading-none select-none whitespace-nowrap bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
-                      WILDEST DREAMS
-                    </h2>
-                  </div>
-                </div>
-
-                {/* Section 6 body (final) — SectionFive */}
-                <div className="relative z-20 w-full bg-neutral-950 text-white shadow-2xl">
-                  <SectionFive />
-                </div>
-
+              {/* Section 5 body (final) — SectionFive */}
+              <div className="relative z-20 w-full bg-neutral-950 text-white shadow-2xl">
+                <SectionFive />
               </div>
 
             </div>

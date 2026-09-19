@@ -21,8 +21,7 @@ const items: CarouselItem[] = [
     { id: "02", image: "/images/3dCorousal/home3.jpeg", alt: "Online Journey", title: "Online Journey" },
     { id: "03", image: "/images/3dCorousal/home2.jpg", alt: "Live Events", title: "Live Events" },
     { id: "04", image: "/images/3dCorousal/home1.jpg", alt: "Life Mentoring", title: "Life Mentoring" },
-    { id: "05", image: "/images/3dCorousal/home3.jpeg", alt: "Online Journey", title: "Online Journey" },
-    { id: "06", image: "/images/3dCorousal/home2.jpg", alt: "Live Events", title: "Live Events" },
+    { id: "05", image: "/images/brands/brand-1.jpg", alt: "Featured", title: "Featured" },
 ];
 
 const TOTAL = items.length;
