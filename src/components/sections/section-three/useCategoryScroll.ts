@@ -87,6 +87,9 @@ export function useSceneScroll(wrapperRef: React.RefObject<HTMLElement | null>) 
  *  values in categoryScenes.ts, to adjust "how far cards scroll" globally. */
 const CARD_TRAVEL_SCALE = 1.4;
 
+/** Scene count the card pace (5200px of travel) was originally tuned for. */
+const REFERENCE_SCENES = 5;
+
 export interface CardTransform {
     x: number;
     y: number;
@@ -119,7 +122,16 @@ export function getCardTransform(
 
     // On small screens, cards maintain uniform speed so they never collide or drift into each other
     const effectiveSpeed = isSmallScreen ? 1.0 : (card.speed ?? 1);
-    const yTravelPx = 5200 * effectiveSpeed;
+
+    // `raw` is spread over a runway of `totalScenes * CARD_SCROLL_VH`, so the
+    // section's scroll length changes with the number of scenes (and with the
+    // extra half slice SectionThree adds for the video scene). Scale the
+    // travel by totalScenes / REFERENCE_SCENES so cards always move the same
+    // px per scrolled px, whatever the scene count. (The pace was tuned with
+    // 5 scenes, hence the reference of 5.)
+    const paceScale = totalScenes / REFERENCE_SCENES;
+
+    const yTravelPx = 5200 * effectiveSpeed * paceScale;
     const y = -diff * yTravelPx;
 
     const wiggle = isSmallScreen

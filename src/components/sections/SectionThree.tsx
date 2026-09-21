@@ -181,6 +181,39 @@ const SMALL_SCREEN_POSITIONS = [
   { top: 94, left: 78, rotate: -2 },
 ];
 
+/** Avatar circle: shows the person's photo, and falls back to their initials
+ *  if there's no photo or it fails to load. Own component so the load-error
+ *  state doesn't sit after TestimonialCard's early return. */
+function CardAvatar({
+  src,
+  initials,
+  className,
+  style,
+}: {
+  src?: string;
+  initials: string;
+  className: string;
+  style: React.CSSProperties;
+}) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <div className={className} style={style}>
+      {src && !failed ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt=""
+          draggable={false}
+          onError={() => setFailed(true)}
+          className="h-full w-full rounded-full object-cover"
+        />
+      ) : (
+        initials
+      )}
+    </div>
+  );
+}
+
 function TestimonialCard({
   card,
   raw,
@@ -273,15 +306,15 @@ function TestimonialCard({
 
         {/* Top: Avatar Circle + Quote Badge */}
         <div className="flex items-center justify-between">
-          <div
-            className="tm-avatar shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-[12px]"
+          <CardAvatar
+            src={card.avatarSrc}
+            initials={card.avatarInitials}
+            className="tm-avatar shrink-0 w-10 h-10 rounded-full flex items-center justify-center overflow-hidden font-bold text-white text-[12px]"
             style={{
               background: `linear-gradient(135deg, ${avatarColor}, ${shade(avatarColor, 0.35)})`,
               boxShadow: "0 0 0 2px rgba(255,255,255,0.7), 0 2px 6px rgba(0,0,0,0.20)",
             }}
-          >
-            {card.avatarInitials}
-          </div>
+          />
           <span
             className="font-serif text-neutral-400 select-none text-[20px] leading-none opacity-40"
             aria-hidden="true"
@@ -306,7 +339,7 @@ function TestimonialCard({
             className="font-serif leading-[1.35] text-neutral-900 text-[11.5px]"
             style={{
               display: "-webkit-box",
-              WebkitLineClamp: 4,
+              WebkitLineClamp: 8,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
             }}
@@ -345,8 +378,10 @@ function TestimonialCard({
         />
         <div className="tm-sheen absolute inset-0 pointer-events-none" />
 
-        <div
-          className="tm-avatar shrink-0 rounded-full flex items-center justify-center font-bold text-white shadow-lg"
+        <CardAvatar
+          src={card.avatarSrc}
+          initials={card.avatarInitials}
+          className="tm-avatar shrink-0 rounded-full flex items-center justify-center overflow-hidden font-bold text-white shadow-lg"
           style={{
             width: avatarSize,
             height: avatarSize,
@@ -354,9 +389,7 @@ function TestimonialCard({
             background: `linear-gradient(135deg, ${avatarColor}, ${shade(avatarColor, 0.35)})`,
             boxShadow: `0 0 0 ${Math.max(1, Math.round(3 * scale))}px rgba(255,255,255,0.65), 0 ${Math.max(1, Math.round(4 * scale))}px ${Math.max(2, Math.round(10 * scale))}px rgba(0,0,0,0.22)`,
           }}
-        >
-          {card.avatarInitials}
-        </div>
+        />
 
         <div className="min-w-0 relative">
           <p
@@ -364,7 +397,7 @@ function TestimonialCard({
             style={{
               fontSize: headlineSize,
               display: "-webkit-box",
-              WebkitLineClamp: 5,
+              WebkitLineClamp: 10,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
             }}
@@ -379,8 +412,14 @@ function TestimonialCard({
             {card.name}
           </p>
           <p
-            className="tracking-[0.15em] uppercase text-neutral-500 leading-snug truncate"
-            style={{ fontSize: subtitleSize }}
+            className="tracking-[0.15em] uppercase text-neutral-500 leading-snug"
+            style={{
+              fontSize: subtitleSize,
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
           >
             {card.subtitle}
           </p>
