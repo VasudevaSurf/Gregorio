@@ -98,6 +98,11 @@
   opacity: 0.26;
 }
 
+/* Video cards reuse the testimonial-card frame/hover, minus the quote mark. */
+.video-card::before {
+  content: none;
+}
+
 .tm-accent-bar {
   opacity: 0.45;
   transition: opacity 0.4s ease, transform 0.4s ease;
@@ -298,6 +303,7 @@
   0% {
     transform: translate3d(0, 0, 0);
   }
+
   100% {
     transform: translate3d(calc(-100% / 3), 0, 0);
   }
@@ -307,6 +313,7 @@
   0% {
     transform: translate3d(calc(-100% / 3), 0, 0);
   }
+
   100% {
     transform: translate3d(0, 0, 0);
   }
@@ -319,6 +326,7 @@
     transform: none;
     box-shadow: none;
   }
+
   .brand-row-wrapper:hover .brand-marquee-left,
   .brand-row-wrapper:hover .brand-marquee-right {
     animation-play-state: running;
@@ -327,10 +335,12 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
+
   .brand-marquee-left,
   .brand-marquee-right {
     animation: none !important;
   }
+
   .brand-luxury-plaque {
     transition: none !important;
   }

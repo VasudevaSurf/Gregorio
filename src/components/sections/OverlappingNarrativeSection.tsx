@@ -45,11 +45,24 @@ const SECTION_SCROLL_VH = 480;
  * If the ring's rotation were driven 1:1 across the entire scroll runway
  * (raw 0 -> 1), the last card would still be mid-rotation, half-hidden
  * under the incoming section, right as it slides up. To avoid that, the
- * ring's rotation is compressed to finish BEFORE that 100vh overlap
- * begins (with a little extra margin), so the last card is already fully
- * centered — and holds there — while Section 3 slides up over it.
+ * ring's rotation is compressed (see HOLD_FRACTION below) to finish BEFORE
+ * that 100vh overlap begins, with this much scroll (in vh) held back at
+ * the end as a "sit still on the last card" buffer. Raise this if the
+ * next section still arrives too early / while the last card is mid-turn;
+ * lower it if you want the next section to arrive sooner after the last
+ * card settles.
  */
 const ROTATION_HOLD_VH = 120;
+
+/**
+ * The fraction of the section's total scroll runway during which the ring
+ * is actually allowed to rotate. Rotation progress reaches 100% (last card
+ * fully centered) at raw === HOLD_FRACTION instead of at raw === 1 — the
+ * remaining (1 - HOLD_FRACTION) of scroll is pure hold time where the ring
+ * just sits still on the last card, which lines up with the window where
+ * Section 3 slides up and covers this section.
+ */
+const HOLD_FRACTION = (SECTION_SCROLL_VH - ROTATION_HOLD_VH) / SECTION_SCROLL_VH;
 
 const titleVariants = {
   enter: (dir: number) => ({ y: dir > 0 ? 44 : -44, opacity: 0 }),
@@ -74,13 +87,17 @@ export default function OverlappingNarrativeSection() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // The ring's rotation is now driven 1:1 by scroll progress instead of by
+  // The ring's rotation is driven directly by scroll progress instead of by
   // click state — no spring, no lag — the same way getCardTransform ties
-  // cards straight to `raw` elsewhere in this project. rotationStep runs
-  // from 0 (first card centered, right as the section pins) to TOTAL-1
-  // (last card centered, right before the pin releases and Section 3 slides
-  // up over it exactly as it already does today).
-  const rotationStep = clamp01(raw) * (TOTAL - 1);
+  // cards straight to `raw` elsewhere in this project. rotationRaw is `raw`
+  // stretched so it hits 1.0 at HOLD_FRACTION instead of at 1.0 itself
+  // (then clamped), so the ring finishes rotating BEFORE Section 3's
+  // overlap window begins and then holds still on the last card for the
+  // remainder of the scroll. rotationStep runs from 0 (first card centered,
+  // right as the section pins) to TOTAL-1 (last card centered, and held
+  // there until the pin releases and Section 3 slides up over it).
+  const rotationRaw = clamp01(raw / HOLD_FRACTION);
+  const rotationStep = rotationRaw * (TOTAL - 1);
   const activeIndex = Math.min(TOTAL - 1, Math.round(rotationStep));
 
   const prevRawRef = useRef(0);
@@ -97,13 +114,18 @@ export default function OverlappingNarrativeSection() {
   // position to that card's slice of the pin window — identical in spirit
   // to jumpToCategory in SectionThree — so the ring's rotation (driven by
   // `raw` above) animates there smoothly under Lenis rather than snapping.
+  // The target is scaled by HOLD_FRACTION so it lands inside the same
+  // compressed rotation window that rotationStep now uses above — without
+  // this, "card 5" would try to scroll past where the ring actually
+  // finishes rotating, into the hold/overlap zone.
   const goToCard = useCallback(
     (index: number) => {
       const el = wrapperRef.current;
       if (!el || !lenis) return;
       const clamped = Math.min(TOTAL - 1, Math.max(0, index));
       const target =
-        el.offsetTop + (clamped / (TOTAL - 1)) * (el.offsetHeight - window.innerHeight);
+        el.offsetTop +
+        (clamped / (TOTAL - 1)) * HOLD_FRACTION * (el.offsetHeight - window.innerHeight);
       lenis.scrollTo(target, { duration: 1.1 });
     },
     [lenis]

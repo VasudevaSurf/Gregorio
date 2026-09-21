@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { useSmoothScroll } from "@/components/providers/SmoothScrollProvider";
 import { CATEGORY_SCENES } from "./section-three/categoryScenes";
@@ -11,6 +12,12 @@ import {
   CARD_SCROLL_VH,
 } from "./section-three/useCategoryScroll";
 import type { CardConfig, MobileCardConfig } from "./section-three/categoryScenes";
+import {
+  VIDEO_TESTIMONIALS,
+  VIDEO_SLOTS,
+  getVideoThumb,
+} from "./section-three/videoTestimonials";
+import type { VideoSlot, VideoTestimonial } from "./section-three/videoTestimonials";
 
 const DESKTOP_REFERENCE_WIDTH = 1440;
 
@@ -383,24 +390,263 @@ function TestimonialCard({
   );
 }
 
+/**
+ * A video testimonial card. Same floating, paper-framed look as
+ * TestimonialCard and driven by the exact same scroll transform, but with a
+ * 16:9 thumbnail + play button instead of a quote. Clicking opens the
+ * YouTube lightbox.
+ *
+ * Resting position note: the page stacks three sticky headers over the top
+ * of this section (48/64/80px each by breakpoint), so a plain "top: 30%"
+ * would park cards underneath them. Video slots are therefore expressed as
+ * a fraction of the stage BELOW those headers via --sec3-hdr (defined in the
+ * <style> block of SectionThree — keep it in sync with page.tsx).
+ */
+function VideoCard({
+  video,
+  slot,
+  raw,
+  sceneIndex,
+  totalScenes,
+  accent,
+  scale,
+  order,
+  onOpen,
+}: {
+  video: VideoTestimonial;
+  slot: VideoSlot;
+  raw: number;
+  sceneIndex: number;
+  totalScenes: number;
+  accent: string;
+  scale: number;
+  order: number;
+  onOpen: (video: VideoTestimonial) => void;
+}) {
+  const t = getCardTransform(
+    raw,
+    {
+      from: { x: 0, y: 0 },
+      rotate: slot.rotate,
+      scale: 1,
+      speed: slot.speed,
+      // Multiples of PI => the wiggle term is exactly 0 at raw = 1, so the
+      // card lands dead on its resting slot when the section is fully scrolled.
+      driftAmplitude: 10,
+      driftPhase: Math.PI * order,
+    },
+    sceneIndex,
+    totalScenes
+  );
+
+  if (t.opacity <= 0) return null;
+
+  const pad = Math.max(8, Math.round(12 * scale));
+  const nameSize = Math.max(11, Math.round(14 * scale * 10) / 10);
+  const subSize = Math.max(8.5, Math.round(10 * scale * 10) / 10);
+  const stageTop = (f: number) => `calc(var(--sec3-hdr) + (100% - var(--sec3-hdr)) * ${f})`;
+
+  return (
+    <div
+      className="sec3-card-host absolute will-change-transform"
+      style={
+        {
+          "--top-m": stageTop(slot.mobile.top),
+          "--left-m": `${slot.mobile.left}%`,
+          "--rot-m": `${slot.rotate}deg`,
+          "--w-m": "min(182px, 45vw)",
+          "--x-m": "0px",
+
+          "--top-d": stageTop(slot.desktop.top),
+          "--left-d": `${slot.desktop.left}%`,
+          "--rot-d": `${slot.rotate}deg`,
+          "--w-d": `${Math.round(slot.width * CARD_SIZE_SCALE * scale)}px`,
+          "--x-d": "0px",
+
+          "--y": `${Math.round(t.y)}px`,
+          "--scale": t.scale,
+          opacity: t.opacity,
+          zIndex: 30,
+          pointerEvents: Math.abs(t.y) < 500 ? "auto" : "none",
+        } as React.CSSProperties
+      }
+    >
+      <button
+        type="button"
+        onClick={() => onOpen(video)}
+        aria-label={`Play video testimonial: ${video.title}`}
+        className="testimonial-card video-card group relative flex w-full cursor-pointer flex-col overflow-hidden text-left"
+        style={
+          {
+            borderRadius: "0px",
+            padding: `${pad}px`,
+            gap: `${Math.max(7, Math.round(10 * scale))}px`,
+            backgroundColor: "#fdfcf8",
+            backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fdfcf8 40%, #f7f4eb 100%)",
+            border: "1px solid rgba(0,0,0,0.06)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.06), 0 16px 32px -10px rgba(0,0,0,0.32), 0 30px 60px -20px rgba(0,0,0,0.35)",
+            "--tm-accent": accent,
+          } as React.CSSProperties
+        }
+      >
+        <div
+          className="tm-accent-bar absolute top-0 h-[3px]"
+          style={{
+            left: pad,
+            right: pad,
+            background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+          }}
+        />
+        <div className="tm-sheen absolute inset-0 pointer-events-none" />
+
+        <div className="relative aspect-video w-full overflow-hidden bg-neutral-900">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={getVideoThumb(video)}
+            alt={video.title}
+            loading="lazy"
+            draggable={false}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/25 transition-colors group-hover:bg-black/10">
+            <span
+              className="flex items-center justify-center rounded-full bg-white/90 shadow-lg transition-transform duration-300 group-hover:scale-110"
+              style={{
+                width: Math.max(34, Math.round(46 * scale)),
+                height: Math.max(34, Math.round(46 * scale)),
+                color: accent === "#f2ede0" ? "#6b685e" : "#1a1a1a",
+              }}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+                style={{ width: "48%", height: "48%", marginLeft: "6%" }}
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <div className="min-w-0 relative">
+          <p
+            className="font-bold text-neutral-900 tracking-tight truncate"
+            style={{ fontSize: nameSize }}
+          >
+            {video.title}
+          </p>
+          <p
+            className="tracking-[0.15em] uppercase text-neutral-500 leading-snug truncate"
+            style={{ fontSize: subSize }}
+          >
+            Watch story
+          </p>
+        </div>
+      </button>
+    </div>
+  );
+}
+
+/**
+ * YouTube lightbox. Rendered through a portal into <body> because the page
+ * wraps everything in a `transform-gpu` element (page.tsx), and a transformed
+ * ancestor turns `position: fixed` into "fixed relative to that ancestor" —
+ * without the portal the overlay would not cover the viewport.
+ */
+function VideoLightbox({
+  video,
+  onClose,
+}: {
+  video: VideoTestimonial;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${video.title} video testimonial`}
+      data-lenis-prevent
+      className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/90 p-4 md:p-10"
+      style={{ touchAction: "none", overscrollBehavior: "contain" }}
+      onClick={onClose}
+    >
+      <div
+        className="relative aspect-video w-full max-w-[1200px] overflow-hidden rounded-2xl bg-black shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          autoFocus
+          aria-label="Close video"
+          className="absolute right-4 top-4 z-20 text-white transition-all hover:rotate-90"
+          onClick={onClose}
+        >
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <iframe
+          src={`https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0`}
+          title={video.title}
+          className="h-full w-full border-none"
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowFullScreen
+        />
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 export default function SectionThree() {
   const scale = useResponsiveScale();
   const { lenis } = useSmoothScroll();
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const count = CATEGORY_SCENES.length;
-  const totalScrollVh = count * CARD_SCROLL_VH;
+
+  // The video testimonials are one extra scene on the SAME timeline as the
+  // text categories (no separate pin, no divider). Slices are laid out at
+  // (i + 0.5) / totalSlices, so with `count + 0.5` slices the video scene
+  // (index = count) is centred at exactly raw = 1: its cards keep scrolling
+  // at the same rhythm as everything before them and come to rest in their
+  // slots right as the section ends.
+  const totalSlices = count + 0.5;
+  const totalScrollVh = totalSlices * CARD_SCROLL_VH;
+
+  const [activeVideo, setActiveVideo] = useState<VideoTestimonial | null>(null);
+  const closeVideo = useCallback(() => setActiveVideo(null), []);
 
   // ONE continuous progress value across the whole section — keeps the
   // background a single pinned surface instead of re-pinning panels.
   const raw = useSceneScroll(wrapperRef);
 
-  const activeIndex = Math.min(count - 1, Math.floor(raw * count));
+  // Video scene has no palette of its own — it keeps the last category's
+  // background/accent so there's no visible change between the two.
+  const activeIndex = Math.min(count - 1, Math.floor(raw * totalSlices));
+
+  // Pause smooth scrolling while the lightbox is open.
+  useEffect(() => {
+    if (!activeVideo || !lenis) return;
+    lenis.stop();
+    return () => lenis.start();
+  }, [activeVideo, lenis]);
 
   const jumpToCategory = (index: number) => {
     const el = wrapperRef.current;
     if (!el || !lenis) return;
-    const target = el.offsetTop + (index / count) * (el.offsetHeight - window.innerHeight);
+    const target = el.offsetTop + (index / totalSlices) * (el.offsetHeight - window.innerHeight);
     lenis.scrollTo(target, { duration: 1.1 });
   };
 
@@ -433,6 +679,12 @@ export default function SectionThree() {
       <style
         dangerouslySetInnerHTML={{
           __html: `
+            /* Height of the 3 sticky headers stacked over this section
+               (see page.tsx: 48 / 64 / 80px each). Video cards are placed
+               relative to the visible stage below them. */
+            .sec3-card-host { --sec3-hdr: 144px; }
+            @media (min-width: 640px) { .sec3-card-host { --sec3-hdr: 192px; } }
+            @media (min-width: 768px) { .sec3-card-host { --sec3-hdr: 240px; } }
             .sec3-card-host {
               top: var(--top-m);
               left: var(--left-m);
@@ -481,7 +733,7 @@ export default function SectionThree() {
                       card={c}
                       raw={raw}
                       sceneIndex={i}
-                      totalScenes={count}
+                      totalScenes={totalSlices}
                       avatarColor={scene.accent}
                       scale={scale}
                       cardIndex={idx}
@@ -496,7 +748,7 @@ export default function SectionThree() {
                       card={c}
                       raw={raw}
                       sceneIndex={i}
-                      totalScenes={count}
+                      totalScenes={totalSlices}
                       avatarColor={scene.accent}
                       scale={scale}
                       cardIndex={idx + 2}
@@ -505,8 +757,26 @@ export default function SectionThree() {
               </React.Fragment>
             );
           })}
+
+          {/* Video testimonials — the final scene on the same timeline. */}
+          {VIDEO_TESTIMONIALS.map((video, i) => (
+            <VideoCard
+              key={video.id}
+              video={video}
+              slot={VIDEO_SLOTS[i % VIDEO_SLOTS.length]}
+              raw={raw}
+              sceneIndex={count}
+              totalScenes={totalSlices}
+              accent={CATEGORY_SCENES[count - 1].accent}
+              scale={scale}
+              order={i}
+              onOpen={setActiveVideo}
+            />
+          ))}
         </div>
       </div>
+
+      {activeVideo && <VideoLightbox video={activeVideo} onClose={closeVideo} />}
     </div>
   );
 }
