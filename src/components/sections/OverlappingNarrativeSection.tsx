@@ -19,15 +19,8 @@ const items: CarouselItem[] = [
   { id: "01", image: "/images/3dCorousal/home3.jpeg", alt: "Online Journey", tag: "Online Journey", title: "Online Journey" },
   { id: "02", image: "/images/3dCorousal/home2.jpg", alt: "Live Events", tag: "Live Events", title: "Live Events" },
   { id: "03", image: "/images/3dCorousal/home1.jpg", alt: "Life Mentoring", tag: "Life Mentoring", title: "Life Mentoring" },
-  { id: "04", image: "/images/3dCorousal/home3.jpeg", alt: "Online Journey", tag: "Online Journey", title: "Online Journey" },
-  { id: "05", image: "/images/3dCorousal/home2.jpg", alt: "Live Events", tag: "Live Events", title: "Live Events" },
-  { id: "06", image: "/images/3dCorousal/home1.jpg", alt: "Life Mentoring", tag: "Life Mentoring", title: "Life Mentoring" },
-  { id: "07", image: "/images/3dCorousal/home3.jpeg", alt: "Online Journey", tag: "Online Journey", title: "Online Journey" },
-  { id: "08", image: "/images/3dCorousal/home2.jpg", alt: "Live Events", tag: "Live Events", title: "Live Events" },
-  { id: "09", image: "/images/3dCorousal/home1.jpg", alt: "Life Mentoring", tag: "Life Mentoring", title: "Life Mentoring" },
-  { id: "10", image: "/images/3dCorousal/home3.jpeg", alt: "Online Journey", tag: "Online Journey", title: "Online Journey" },
-  { id: "11", image: "/images/3dCorousal/home2.jpg", alt: "Live Events", tag: "Live Events", title: "Live Events" },
-  { id: "12", image: "/images/3dCorousal/home1.jpg", alt: "Life Mentoring", tag: "Life Mentoring", title: "Life Mentoring" },
+  { id: "04", image: "/images/founder/founder.jpg", alt: "Gregorio Avanzini", tag: "Gregorio Avanzini", title: "Gregorio Avanzini" },
+  { id: "05", image: "/images/brands/brand-1.jpg", alt: "Featured", tag: "Featured", title: "Featured" },
 ];
 
 const TOTAL = items.length;
@@ -43,7 +36,20 @@ const ANGLE_STEP = 360 / TOTAL;
  * that category list. Raise this to make the scroll-through-cards feel
  * slower/longer; lower it for a snappier cycle.
  */
-const SECTION_SCROLL_VH = 1000;
+const SECTION_SCROLL_VH = 480;
+
+/**
+ * The next section (Section 3 / SectionThree) is pulled up with a fixed
+ * `-mt-[100vh]`, so it always starts sliding over this ring during the
+ * FINAL 100vh of this section's scroll runway — regardless of card count.
+ * If the ring's rotation were driven 1:1 across the entire scroll runway
+ * (raw 0 -> 1), the last card would still be mid-rotation, half-hidden
+ * under the incoming section, right as it slides up. To avoid that, the
+ * ring's rotation is compressed to finish BEFORE that 100vh overlap
+ * begins (with a little extra margin), so the last card is already fully
+ * centered — and holds there — while Section 3 slides up over it.
+ */
+const ROTATION_HOLD_VH = 120;
 
 const titleVariants = {
   enter: (dir: number) => ({ y: dir > 0 ? 44 : -44, opacity: 0 }),
@@ -120,7 +126,7 @@ export default function OverlappingNarrativeSection() {
     <div
       ref={wrapperRef}
       className="relative w-full"
-      style={{ height: `calc(100vh + ${SECTION_SCROLL_VH}vh)` }}
+      style={{ height: `calc(10vh + ${SECTION_SCROLL_VH}vh)` }}
     >
       <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-10 h-[calc(100vh-96px)] sm:h-[calc(100vh-128px)] md:h-[calc(100vh-160px)] w-full bg-neutral-950 text-white flex flex-col items-center justify-center overflow-hidden py-8 sm:py-10">
         {/* 3D Carousel Stage */}

@@ -35,10 +35,10 @@ export default function HomePage() {
             Header 2 (GREGORIO bottom) arrives with this container. */}
         <div className="relative z-20 w-full -mt-[100vh]">
 
-          {/* Header 2 (Bottom Half of GREGORIO): Sticky at 1x header-height, z-50 */}
-          <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-end justify-center overflow-hidden shadow-2xl">
-            <div className="relative h-full w-full flex items-end justify-center overflow-hidden">
-              <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none translate-y-[50%] whitespace-nowrap">
+          {/* Header 2 (THE LIFE OF YOUR — full, no split): Sticky at 1x header-height, z-50 */}
+          <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-hidden shadow-2xl">
+            <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
+              <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none whitespace-nowrap">
                 THE LIFE OF YOUR
               </h2>
             </div>
@@ -54,11 +54,11 @@ export default function HomePage() {
               Header 3 (WORLD top) arrives with this container. */}
           <div className="relative z-20 w-full -mt-[100vh]">
 
-            {/* Header 3 (Top Half of WORLD): Sticky at 2x header-height, z-50 */}
-            <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-start justify-center overflow-hidden shadow-2xl">
-              <div className="relative h-full w-full flex items-start justify-center overflow-hidden">
-                <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-amber-200 leading-none select-none -translate-y-[50%] whitespace-nowrap">
-                  THE LIFE OF YOUR
+            {/* Header 3 (WILDEST DREAMS — full, no split): Sticky at 2x header-height, z-50 */}
+            <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-hidden shadow-2xl">
+              <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
+                <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.35em] uppercase leading-none select-none whitespace-nowrap bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
+                  WILDEST DREAMS
                 </h2>
               </div>
             </div>
@@ -73,14 +73,13 @@ export default function HomePage() {
                 Header 4 (BEYOND) arrives with this container. */}
             <div className="relative z-20 w-full">
 
-              {/* Header 4 (BEYOND): Sticky at 3x header-height, z-50.
-                  A single full word (no split) — the final seal of the deck.
-                  Uses a subtle gradient text instead of the split-clip pattern
-                  above, since there is no matching bottom-half below it. */}
-              <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-hidden shadow-2xl">
-                <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
-                  <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.35em] uppercase leading-none select-none whitespace-nowrap bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
-                    WILDEST DREAMS
+              {/* Header 4 (— Gregorio): Sticky at 3x header-height, z-50.
+                  A single full line (no split) — the final seal of the deck,
+                  signing off the closing section. */}
+              <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-visible shadow-2xl">
+                <div className="relative h-full w-full flex items-center justify-center overflow-visible">
+                  <h2 className="font-serif italic text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.1em] leading-normal select-none whitespace-nowrap bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
+                    — Gregorio
                   </h2>
                 </div>
               </div>
