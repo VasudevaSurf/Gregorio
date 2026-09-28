@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { useSmoothScroll } from "@/components/providers/SmoothScrollProvider";
@@ -12,24 +12,22 @@ import {
   CARD_SCROLL_VH,
 } from "./section-three/useCategoryScroll";
 import type { CardConfig, MobileCardConfig } from "./section-three/categoryScenes";
-import {
-  VIDEO_TESTIMONIALS,
-  VIDEO_SLOTS,
-  getVideoThumb,
-} from "./section-three/videoTestimonials";
-import type { VideoSlot, VideoTestimonial } from "./section-three/videoTestimonials";
+import { getVideoThumb } from "./section-three/videoTestimonials";
+import type { VideoTestimonial } from "./section-three/videoTestimonials";
+import { VIDEO_WIDTH } from "./section-three/sceneLayout.ts";
+import type { Placement } from "./section-three/sceneLayout.ts";
 
 const DESKTOP_REFERENCE_WIDTH = 1440;
-
-const CARD_SPREAD = 0.94;
 
 /** Uniform size multiplier applied to every testimonial card's configured
  *  width so cards breathe and maintain clean gaps across all viewports. */
 const CARD_SIZE_SCALE = 1.28;
 
-/** How much of each category's slice of the timeline is used to
- *  crossfade into / out of its neighbour. */
-const CROSSFADE_FRACTION = 0.35;
+/** Between two scene centres the colour starts changing at BLEND_START and
+ *  finishes at BLEND_END (0..1 of that stretch). A wide window = a slow,
+ *  gradual colour change instead of a quick switch. */
+const BLEND_START = 0.1;
+const BLEND_END = 0.9;
 
 /** How much each card's own fade is staggered relative to its siblings. */
 const CARD_STAGGER = 0.12;
@@ -64,8 +62,23 @@ function useResponsiveScale() {
   return scale;
 }
 
-function pulledIn(pct: number) {
-  return 50 + (pct - 50) * CARD_SPREAD;
+/**
+ * Which two scenes the pinned stage is between, and how far along the
+ * hand-over is (0..1). `p` is the scene position as a float (scene i sits at
+ * p = i), so the colour is always drifting gently toward the next scene.
+ */
+function sceneBlend(p: number, count: number) {
+  const c = Math.min(count - 1, Math.max(0, p));
+  const from = Math.min(count - 1, Math.floor(c));
+  const to = Math.min(count - 1, from + 1);
+  const t = from === to ? 0 : ease((c - from - BLEND_START) / (BLEND_END - BLEND_START));
+  return { from, to, t };
+}
+
+/** CSS `top` for a card centred `offset` px below the middle of the visible
+ *  stage (the area under the stacked sticky headers). */
+function stageMid(offset: number) {
+  return `calc(var(--sec3-hdr) + (100% - var(--sec3-hdr)) * 0.5 + ${Math.round(offset)}px)`;
 }
 
 function hexToRgb(hex: string) {
@@ -89,11 +102,6 @@ function mixColors(a: string, b: string, t: number) {
  *  configured color, so nothing new has to be added to categoryScenes.ts. */
 function shade(hex: string, amt: number) {
   return mixColors(hex, "#000000", amt);
-}
-
-function withAlpha(hex: string, alpha: number) {
-  const { r, g, b } = hexToRgb(hex);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 /** Fine film-grain texture, blended over the flat background so it reads as
@@ -173,14 +181,6 @@ function staggeredPresence(groupPresence: number, index: number, total: number) 
   return ease(local);
 }
 
-const SMALL_SCREEN_POSITIONS = [
-  { top: 12, left: 22, rotate: -1.5 },
-  { top: 30, left: 78, rotate: 1.8 },
-  { top: 54, left: 50, rotate: -1 },
-  { top: 76, left: 22, rotate: 1.5 },
-  { top: 94, left: 78, rotate: -2 },
-];
-
 /** Avatar circle: shows the person's photo, and falls back to their initials
  *  if there's no photo or it fails to load. Own component so the load-error
  *  state doesn't sit after TestimonialCard's early return. */
@@ -221,7 +221,6 @@ function TestimonialCard({
   totalScenes,
   avatarColor,
   scale,
-  cardIndex = 0,
 }: {
   card: CardConfig | MobileCardConfig;
   raw: number;
@@ -229,7 +228,6 @@ function TestimonialCard({
   totalScenes: number;
   avatarColor: string;
   scale: number;
-  cardIndex?: number;
 }) {
   const t = getCardTransform(raw, card, sceneIndex, totalScenes);
 
@@ -244,37 +242,30 @@ function TestimonialCard({
   const nameSize = Math.max(12.5, Math.round(14.5 * scale * 10) / 10);
   const subtitleSize = Math.max(10, Math.round(11.5 * scale * 10) / 10);
 
-  const topDesk = pulledIn(card.top);
-  const leftDesk = pulledIn(card.left);
-  const rotDesk = card.rotate;
   const cardWidthDesk = Math.round(card.width * CARD_SIZE_SCALE * scale);
-  const scaledXDesk = Math.round((card.from?.x ?? 0) * 0.12 * scale);
   const scaledY = Math.round(t.y);
-
-  // Mobile / small screen metrics & position (Minimal Goods 3-lane staggered alignment)
-  const posMob = SMALL_SCREEN_POSITIONS[cardIndex % SMALL_SCREEN_POSITIONS.length];
 
   return (
     <div
       className="sec3-card-host absolute will-change-transform"
       style={
         {
-          "--top-m": `${posMob.top}%`,
-          "--left-m": `${posMob.left}%`,
-          "--rot-m": `${posMob.rotate}deg`,
-          "--w-m": "min(182px, 45vw)",
+          "--top-m": stageMid(card.place.yM),
+          "--left-m": `${card.place.left}%`,
+          "--rot-m": "0deg",
+          "--w-m": "min(182px, 43vw)",
           "--x-m": "0px",
 
-          "--top-d": `${topDesk}%`,
-          "--left-d": `${leftDesk}%`,
-          "--rot-d": `${rotDesk}deg`,
+          "--top-d": stageMid(card.place.yD * scale),
+          "--left-d": `${card.place.left}%`,
+          "--rot-d": "0deg",
           "--w-d": `${cardWidthDesk}px`,
-          "--x-d": `${scaledXDesk}px`,
+          "--x-d": "0px",
 
           "--y": `${scaledY}px`,
           "--scale": t.scale,
           opacity: t.opacity,
-          zIndex: card.layer === "front" ? 30 : 5,
+          zIndex: 30,
           pointerEvents: Math.abs(scaledY) < 500 ? "auto" : "none",
         } as React.CSSProperties
       }
@@ -443,7 +434,7 @@ function TestimonialCard({
  */
 function VideoCard({
   video,
-  slot,
+  place,
   raw,
   sceneIndex,
   totalScenes,
@@ -453,7 +444,7 @@ function VideoCard({
   onOpen,
 }: {
   video: VideoTestimonial;
-  slot: VideoSlot;
+  place: Placement;
   raw: number;
   sceneIndex: number;
   totalScenes: number;
@@ -466,13 +457,13 @@ function VideoCard({
     raw,
     {
       from: { x: 0, y: 0 },
-      rotate: slot.rotate,
+      rotate: 0,
       scale: 1,
-      speed: slot.speed,
+      speed: place.speed,
       // Multiples of PI => the wiggle term is exactly 0 at raw = 1, so the
       // card lands dead on its resting slot when the section is fully scrolled.
-      driftAmplitude: 10,
-      driftPhase: Math.PI * order,
+      driftAmplitude: 6,
+      driftPhase: order * 1.7,
     },
     sceneIndex,
     totalScenes
@@ -483,23 +474,22 @@ function VideoCard({
   const pad = Math.max(8, Math.round(12 * scale));
   const nameSize = Math.max(11, Math.round(14 * scale * 10) / 10);
   const subSize = Math.max(8.5, Math.round(10 * scale * 10) / 10);
-  const stageTop = (f: number) => `calc(var(--sec3-hdr) + (100% - var(--sec3-hdr)) * ${f})`;
 
   return (
     <div
       className="sec3-card-host absolute will-change-transform"
       style={
         {
-          "--top-m": stageTop(slot.mobile.top),
-          "--left-m": `${slot.mobile.left}%`,
-          "--rot-m": `${slot.rotate}deg`,
-          "--w-m": "min(182px, 45vw)",
+          "--top-m": stageMid(place.yM),
+          "--left-m": `${place.left}%`,
+          "--rot-m": "0deg",
+          "--w-m": "min(182px, 43vw)",
           "--x-m": "0px",
 
-          "--top-d": stageTop(slot.desktop.top),
-          "--left-d": `${slot.desktop.left}%`,
-          "--rot-d": `${slot.rotate}deg`,
-          "--w-d": `${Math.round(slot.width * CARD_SIZE_SCALE * scale)}px`,
+          "--top-d": stageMid(place.yD * scale),
+          "--left-d": `${place.left}%`,
+          "--rot-d": "0deg",
+          "--w-d": `${Math.round(VIDEO_WIDTH * CARD_SIZE_SCALE * scale)}px`,
           "--x-d": "0px",
 
           "--y": `${Math.round(t.y)}px`,
@@ -655,13 +645,10 @@ export default function SectionThree() {
 
   const count = CATEGORY_SCENES.length;
 
-  // The video testimonials are one extra scene on the SAME timeline as the
-  // text categories (no separate pin, no divider). Slices are laid out at
-  // (i + 0.5) / totalSlices, so with `count + 0.5` slices the video scene
-  // (index = count) is centred at exactly raw = 1: its cards keep scrolling
-  // at the same rhythm as everything before them and come to rest in their
-  // slots right as the section ends.
-  const totalSlices = count + 0.5;
+  // Scene i is centred at (i + 0.5) / totalSlices. With `count - 0.5`
+  // slices the LAST scene is centred at exactly raw = 1, so its cards
+  // (text + video) come to rest in their slots right as the section ends.
+  const totalSlices = count - 0.5;
   const totalScrollVh = totalSlices * CARD_SCROLL_VH;
 
   const [activeVideo, setActiveVideo] = useState<VideoTestimonial | null>(null);
@@ -671,9 +658,11 @@ export default function SectionThree() {
   // background a single pinned surface instead of re-pinning panels.
   const raw = useSceneScroll(wrapperRef);
 
-  // Video scene has no palette of its own — it keeps the last category's
-  // background/accent so there's no visible change between the two.
-  const activeIndex = Math.min(count - 1, Math.floor(raw * totalSlices));
+  const blend = sceneBlend(raw * totalSlices - 0.5, count);
+  const fromScene = CATEGORY_SCENES[blend.from];
+  const toScene = CATEGORY_SCENES[blend.to];
+  const bg = mixColors(fromScene.background, toScene.background, blend.t);
+  const accent = mixColors(fromScene.accent, toScene.accent, blend.t);
 
   // Pause smooth scrolling while the lightbox is open.
   useEffect(() => {
@@ -689,29 +678,14 @@ export default function SectionThree() {
     lenis.scrollTo(target, { duration: 1.1 });
   };
 
-  // Background + accent match the active category scene with smooth presence
-  const sceneVisual = useMemo(
-    () => ({
-      bg: CATEGORY_SCENES[activeIndex]?.background ?? CATEGORY_SCENES[0].background,
-      accent: CATEGORY_SCENES[activeIndex]?.accent ?? CATEGORY_SCENES[0].accent,
-    }),
-    [activeIndex]
-  );
-
-  const panelStyle = useMemo<React.CSSProperties>(() => {
-    const edge = shade(sceneVisual.bg, 0.32);
-    const vignette = `radial-gradient(130% 110% at 50% 65%, ${sceneVisual.bg} 0%, ${edge} 100%)`;
-    const glow = `radial-gradient(55% 45% at 50% 92%, ${withAlpha(sceneVisual.accent, 0.32)} 0%, rgba(0,0,0,0) 70%)`;
-    const edgeFade =
-      "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 14%, rgba(0,0,0,0) 86%, rgba(0,0,0,0.35) 100%)";
-    return {
-      backgroundColor: sceneVisual.bg,
-      backgroundImage: `${NOISE_URL}, ${edgeFade}, ${glow}, ${vignette}`,
-      backgroundBlendMode: "overlay, normal, soft-light, normal",
-      backgroundSize: "160px 160px, 100% 100%, 100% 100%, 100% 100%",
-      transition: "background-color 400ms ease",
-    };
-  }, [sceneVisual]);
+  // Flat, continuously blended background with a fine grain over it.
+  const panelStyle: React.CSSProperties = {
+    backgroundColor: bg,
+    backgroundImage: NOISE_URL,
+    backgroundBlendMode: "overlay",
+    backgroundSize: "160px 160px",
+    transition: "background-color 700ms ease-out",
+  };
 
   return (
     <div className="relative w-full">
@@ -757,61 +731,45 @@ export default function SectionThree() {
           className="sticky top-0 h-screen w-full overflow-hidden"
           style={panelStyle}
         >
-          <AmbientDecor accent={sceneVisual.accent} presence={1} />
+          <AmbientDecor accent={accent} presence={0.6} />
+
 
           {CATEGORY_SCENES.map((scene, i) => {
             const cards = scene.cards;
 
             return (
               <React.Fragment key={scene.id}>
-                {cards
-                  .filter((c) => c.layer === "back")
-                  .map((c, idx) => (
-                    <TestimonialCard
-                      key={c.id}
-                      card={c}
-                      raw={raw}
-                      sceneIndex={i}
-                      totalScenes={totalSlices}
-                      avatarColor={scene.accent}
-                      scale={scale}
-                      cardIndex={idx}
-                    />
-                  ))}
+                {cards.map((c) => (
+                  <TestimonialCard
+                    key={c.id}
+                    card={c}
+                    raw={raw}
+                    sceneIndex={i}
+                    totalScenes={totalSlices}
+                    avatarColor={scene.accent}
+                    scale={scale}
+                  />
+                ))}
 
-                {cards
-                  .filter((c) => c.layer === "front")
-                  .map((c, idx) => (
-                    <TestimonialCard
-                      key={c.id}
-                      card={c}
-                      raw={raw}
-                      sceneIndex={i}
-                      totalScenes={totalSlices}
-                      avatarColor={scene.accent}
-                      scale={scale}
-                      cardIndex={idx + 2}
-                    />
-                  ))}
+                {/* Video cards that ride along in this scene. */}
+                {scene.videos.map((v, vi) => (
+                  <VideoCard
+                    key={`${scene.id}-${vi}-${v.video.id}`}
+                    video={v.video}
+                    place={v.place}
+                    raw={raw}
+                    sceneIndex={i}
+                    totalScenes={totalSlices}
+                    accent={scene.accent}
+                    scale={scale}
+                    order={vi}
+                    onOpen={setActiveVideo}
+                  />
+                ))}
               </React.Fragment>
             );
           })}
 
-          {/* Video testimonials — the final scene on the same timeline. */}
-          {VIDEO_TESTIMONIALS.map((video, i) => (
-            <VideoCard
-              key={video.id}
-              video={video}
-              slot={VIDEO_SLOTS[i % VIDEO_SLOTS.length]}
-              raw={raw}
-              sceneIndex={count}
-              totalScenes={totalSlices}
-              accent={CATEGORY_SCENES[count - 1].accent}
-              scale={scale}
-              order={i}
-              onOpen={setActiveVideo}
-            />
-          ))}
         </div>
       </div>
 

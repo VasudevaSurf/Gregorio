@@ -1,5 +1,5 @@
 /**
- * Video testimonials shown as the final beat of Section Three.
+ * Video testimonials shown inside Section Three's scenes.
  *
  * They are NOT a separate section: they are one more "scene" appended to the
  * same continuous scroll timeline as the text-testimonial categories, so the
@@ -10,6 +10,8 @@
  * thumbnail, set `thumb` (e.g. "/images/anthony-trucks.jpg"); otherwise the
  * YouTube-generated thumbnail is used.
  */
+
+import { mulberry32, SHUFFLE_SEED } from "./sceneLayout.ts";
 
 export type VideoTestimonial = {
     id: string;        // YouTube video id
@@ -32,36 +34,22 @@ export function getVideoThumb(video: VideoTestimonial) {
     return video.thumb ?? `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
 }
 
-export type VideoSlot = {
-    /** Desktop (>=1024px) resting position. `top` is a 0..1 fraction of the
-     *  VISIBLE stage (below the stacked sticky headers), `left` is % of width. */
-    desktop: { top: number; left: number };
-    /** Small-screen (<1024px) resting position, same units as above. */
-    mobile: { top: number; left: number };
-    /** Card width in px at the desktop reference size (pre-scale). */
-    width: number;
-    rotate: number;
-    /**
-     * Scroll speed multiplier. Values increase with index so that, in BOTH
-     * the desktop grid and the 2-lane mobile grid, a card lower on screen
-     * always travels a little faster than the one above it in its column —
-     * the gap between vertically-stacked cards only ever grows while they
-     * scroll in, so they can never run into each other.
-     */
-    speed: number;
-};
+/** Videos that ride along inside each scene (next to its text cards). */
+export const VIDEOS_PER_SCENE = 2;
 
 /**
- * 6 resting slots — 3 cols x 2 rows on desktop, 2 lanes x 3 rows on small
- * screens. Every card finishes its journey exactly at the end of the
- * section's pin, so the videos are fully on screen (and clickable) right
- * before the section releases.
+ * Picks VIDEOS_PER_SCENE videos for every scene in a seeded-random order.
+ * With more scene slots than videos, the shuffled list wraps around - add
+ * videos to VIDEO_TESTIMONIALS to avoid repeats.
  */
-export const VIDEO_SLOTS: VideoSlot[] = [
-    { desktop: { top: 0.28, left: 21 }, mobile: { top: 0.17, left: 26 }, width: 230, rotate: -2, speed: 0.9 },
-    { desktop: { top: 0.24, left: 50 }, mobile: { top: 0.22, left: 74 }, width: 230, rotate: 1.2, speed: 0.95 },
-    { desktop: { top: 0.28, left: 79 }, mobile: { top: 0.5, left: 26 }, width: 230, rotate: 2, speed: 1.0 },
-    { desktop: { top: 0.76, left: 21 }, mobile: { top: 0.55, left: 74 }, width: 230, rotate: 1.5, speed: 1.05 },
-    { desktop: { top: 0.72, left: 50 }, mobile: { top: 0.83, left: 26 }, width: 230, rotate: -1.5, speed: 1.1 },
-    { desktop: { top: 0.76, left: 79 }, mobile: { top: 0.88, left: 74 }, width: 230, rotate: -1, speed: 1.15 },
-];
+export function pickSceneVideos(sceneCount: number): VideoTestimonial[][] {
+    const rand = mulberry32(SHUFFLE_SEED);
+    const order = [...VIDEO_TESTIMONIALS];
+    for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+    }
+    return Array.from({ length: sceneCount }, (_, s) =>
+        Array.from({ length: VIDEOS_PER_SCENE }, (_, k) => order[(s * VIDEOS_PER_SCENE + k) % order.length])
+    );
+}

@@ -20,7 +20,7 @@ export function clamp01(v: number) {
  * = cards travel further / the section feels longer; smaller = snappier.
  * Total scroll length per category = 100vh + CARD_SCROLL_VH.
  */
-export const CARD_SCROLL_VH = 80;
+export const CARD_SCROLL_VH = 100;
 
 /**
  * Tracks ONE category's own progress through its pinned window.
@@ -131,7 +131,7 @@ export function getCardTransform(
     // 5 scenes, hence the reference of 5.)
     const paceScale = totalScenes / REFERENCE_SCENES;
 
-    const yTravelPx = 5200 * effectiveSpeed * paceScale;
+    const yTravelPx = 6000 * effectiveSpeed * paceScale;
     const y = -diff * yTravelPx;
 
     const wiggle = isSmallScreen

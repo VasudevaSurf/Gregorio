@@ -1,24 +1,18 @@
 /**
  * Section Three "testimonial showcase" layout.
  *
- * The CONTENT lives in testimonials.ts (one entry = one card, nothing is
- * repeated). This file only decides where those cards sit and how they move:
- * testimonials are chunked into scenes of CARDS_PER_SCENE, and each card in
- * a scene takes the next slot from CARD_SLOTS (odd scenes are mirrored so the
- * layout doesn't look stamped).
- *
- * Coordinate system for `top`/`left`:
- *  - percentages of the stage (0-100) measured from the top-left corner,
- *    referring to the CENTER of the card.
- *  - width is px at the desktop reference size (scaled in SectionThree).
- *  - layer: "front" cards render above "back" cards.
- *  - from: only `from.x` is used (a small horizontal offset).
- *  - speed: relative scroll speed so cards never move in lockstep.
- *  - rotate/scale: resting rotation (deg) and scale.
+ * The CONTENT lives in testimonials.ts (one entry = one card) and
+ * videoTestimonials.ts. This file groups testimonials into scenes of
+ * CARDS_PER_SCENE, adds VIDEOS_PER_SCENE video cards to each scene, and asks
+ * sceneLayout.ts for non-overlapping positions for all of them.
  */
 
 import { TESTIMONIALS } from "./testimonials";
 import type { Testimonial } from "./testimonials";
+import { pickSceneVideos, VIDEOS_PER_SCENE } from "./videoTestimonials";
+import type { VideoTestimonial } from "./videoTestimonials";
+import { layoutScene } from "./sceneLayout.ts";
+import type { ItemKind, Placement } from "./sceneLayout.ts";
 
 export type CardConfig = {
     id: string;
@@ -38,9 +32,12 @@ export type CardConfig = {
     speed: number;
     driftAmplitude: number;
     driftPhase: number;
+    place: Placement;
 };
 
 export type MobileCardConfig = CardConfig;
+
+export type SceneVideo = { video: VideoTestimonial; place: Placement };
 
 export type CategoryScene = {
     id: string;
@@ -50,21 +47,20 @@ export type CategoryScene = {
     textColor: string;
     accent: string;
     cards: CardConfig[];
+    videos: SceneVideo[];
 };
 
-/** How many testimonial cards each scene holds (max 3 slots below). */
+/** How many testimonial cards each scene holds. */
 const CARDS_PER_SCENE = 3;
 
-type Slot = Omit<CardConfig, "id" | "headline" | "body" | "name" | "subtitle" | "avatarInitials" | "avatarSrc">;
-
-const CARD_SLOTS: Slot[] = [
-    { width: 340, top: 20, left: 78, layer: "front", rotate: -2, scale: 1, from: { x: 220, y: -140 }, speed: 0.85, driftAmplitude: 14, driftPhase: 0.2 },
-    { width: 330, top: 70, left: 20, layer: "back", rotate: 2, scale: 1, from: { x: -200, y: 160 }, speed: 1.1, driftAmplitude: 12, driftPhase: 1.6 },
-    { width: 320, top: 78, left: 62, layer: "front", rotate: 3, scale: 0.95, from: { x: 180, y: 160 }, speed: 1.0, driftAmplitude: 12, driftPhase: 2.8 },
+/** Per-scene palettes. SectionThree blends the pinned background from one
+ *  scene's colour to the next as you scroll. Scenes cycle through this list. */
+const PALETTES = [
+    { background: "#2b2a26", textColor: "#e8e5da", accent: "#8a7f68" }, // warm near-black
+    { background: "#6f7b6c", textColor: "#e6e1cf", accent: "#4f5b4d" }, // sage green
+    { background: "#d9d2bd", textColor: "#2a2925", accent: "#7a6a4a" }, // light sand
+    { background: "#3d4a52", textColor: "#d5dee2", accent: "#5b7079" }, // slate blue
 ];
-
-/** Every scene shares one palette, so the pinned background never changes. */
-const THEME = { background: "#6b685e", textColor: "#d9d5c9", accent: "#f2ede0" };
 
 function initials(name: string) {
     const parts = name.split(/\s+/).filter(Boolean);
@@ -86,12 +82,19 @@ function stripClosingQuote(s: string) {
     return s.replace(/\s*[’'"”]$/, "");
 }
 
-function buildCard(t: Testimonial, slot: Slot, mirrored: boolean): CardConfig {
+function buildCard(t: Testimonial, index: number, place: Placement): CardConfig {
     return {
-        ...slot,
-        left: mirrored ? 100 - slot.left : slot.left,
-        rotate: mirrored ? -slot.rotate : slot.rotate,
-        from: { x: mirrored ? -slot.from.x : slot.from.x, y: slot.from.y },
+        width: 340,
+        top: 0,
+        left: place.left,
+        layer: "front",
+        rotate: 0,
+        scale: 1,
+        from: { x: 0, y: 0 },
+        speed: place.speed,
+        driftAmplitude: 6,
+        driftPhase: index * 1.7,
+        place,
         id: `t-${slug(t.name)}`,
         headline: stripOpeningQuote(t.highlight),
         body: stripClosingQuote(t.quote),
@@ -102,21 +105,24 @@ function buildCard(t: Testimonial, slot: Slot, mirrored: boolean): CardConfig {
     };
 }
 
-export const CATEGORY_SCENES: CategoryScene[] = Array.from(
-    { length: Math.ceil(TESTIMONIALS.length / CARDS_PER_SCENE) },
-    (_, sceneIndex) => {
-        const mirrored = sceneIndex % 2 === 1;
-        const chunk = TESTIMONIALS.slice(sceneIndex * CARDS_PER_SCENE, (sceneIndex + 1) * CARDS_PER_SCENE);
-        const label = String(sceneIndex + 1).padStart(2, "0");
-        return {
-            id: label,
-            label,
-            word: label,
-            ...THEME,
-            cards: chunk.map((t, i) => buildCard(t, CARD_SLOTS[i], mirrored)),
-        };
-    }
-);
+const SCENE_COUNT = Math.ceil(TESTIMONIALS.length / CARDS_PER_SCENE);
+const SCENE_VIDEOS = pickSceneVideos(SCENE_COUNT);
+
+export const CATEGORY_SCENES: CategoryScene[] = Array.from({ length: SCENE_COUNT }, (_, sceneIndex) => {
+    const chunk = TESTIMONIALS.slice(sceneIndex * CARDS_PER_SCENE, (sceneIndex + 1) * CARDS_PER_SCENE);
+    const videos = SCENE_VIDEOS[sceneIndex].slice(0, VIDEOS_PER_SCENE);
+    const kinds: ItemKind[] = [...chunk.map((): ItemKind => "text"), ...videos.map((): ItemKind => "video")];
+    const places = layoutScene(kinds, sceneIndex);
+    const label = String(sceneIndex + 1).padStart(2, "0");
+    return {
+        id: label,
+        label,
+        word: label,
+        ...PALETTES[sceneIndex % PALETTES.length],
+        cards: chunk.map((t, i) => buildCard(t, i, places[i])),
+        videos: videos.map((video, i) => ({ video, place: places[chunk.length + i] })),
+    };
+});
 
 /** How many vh each category gets within the section's single scroll timeline. */
 export const SCROLL_VH_PER_CATEGORY = 100;
