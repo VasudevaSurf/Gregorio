@@ -14,8 +14,8 @@ import {
 import type { CardConfig, MobileCardConfig } from "./section-three/categoryScenes";
 import { getVideoThumb } from "./section-three/videoTestimonials";
 import type { VideoTestimonial } from "./section-three/videoTestimonials";
-import { VIDEO_WIDTH } from "./section-three/sceneLayout.ts";
-import type { Placement } from "./section-three/sceneLayout.ts";
+import { VIDEO_WIDTH } from "./section-three/sceneLayout";
+import type { Placement } from "./section-three/sceneLayout";
 
 const DESKTOP_REFERENCE_WIDTH = 1440;
 

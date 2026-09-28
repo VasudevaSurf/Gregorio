@@ -11,8 +11,8 @@ import { TESTIMONIALS } from "./testimonials";
 import type { Testimonial } from "./testimonials";
 import { pickSceneVideos, VIDEOS_PER_SCENE } from "./videoTestimonials";
 import type { VideoTestimonial } from "./videoTestimonials";
-import { layoutScene } from "./sceneLayout.ts";
-import type { ItemKind, Placement } from "./sceneLayout.ts";
+import { layoutScene } from "./sceneLayout";
+import type { ItemKind, Placement } from "./sceneLayout";
 
 export type CardConfig = {
     id: string;

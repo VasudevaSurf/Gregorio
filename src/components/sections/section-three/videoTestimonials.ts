@@ -11,7 +11,7 @@
  * YouTube-generated thumbnail is used.
  */
 
-import { mulberry32, SHUFFLE_SEED } from "./sceneLayout.ts";
+import { mulberry32, SHUFFLE_SEED } from "./sceneLayout";
 
 export type VideoTestimonial = {
     id: string;        // YouTube video id
