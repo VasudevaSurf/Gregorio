@@ -17,7 +17,7 @@ export default function HomePage() {
             Introduces the Brand Showcase section as the first card in the deck. */}
         <div className="sticky top-0 z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-hidden border-t border-white/15 shadow-2xl">
           <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
-            <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none">
+            <h2 className="font-serif text-[5.8vw] tracking-[0.15em] sm:text-6xl sm:tracking-[0.3em] md:text-7xl font-bold uppercase text-white leading-none select-none whitespace-nowrap">
               DESIGN AND LIVE
             </h2>
           </div>
@@ -38,7 +38,7 @@ export default function HomePage() {
           {/* Header 2 (THE LIFE OF YOUR — full, no split): Sticky at 1x header-height, z-50 */}
           <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-hidden shadow-2xl">
             <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
-              <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.3em] uppercase text-white leading-none select-none whitespace-nowrap">
+              <h2 className="font-serif text-[5.8vw] tracking-[0.15em] sm:text-6xl sm:tracking-[0.3em] md:text-7xl font-bold uppercase text-white leading-none select-none whitespace-nowrap">
                 THE LIFE OF YOUR
               </h2>
             </div>
@@ -57,7 +57,7 @@ export default function HomePage() {
             {/* Header 3 (WILDEST DREAMS — full, no split): Sticky at 2x header-height, z-50 */}
             <div className="sticky top-[96px] sm:top-[128px] md:top-[160px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-hidden shadow-2xl">
               <div className="relative h-full w-full flex items-center justify-center overflow-hidden">
-                <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.35em] uppercase leading-none select-none whitespace-nowrap bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
+                <h2 className="font-serif text-[5.8vw] tracking-[0.2em] sm:text-5xl sm:tracking-[0.35em] md:text-6xl font-bold uppercase leading-none select-none whitespace-nowrap bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
                   WILDEST DREAMS
                 </h2>
               </div>
@@ -78,7 +78,7 @@ export default function HomePage() {
                   signing off the closing section. */}
               <div className="sticky top-[144px] sm:top-[192px] md:top-[240px] z-50 w-full h-[48px] sm:h-[64px] md:h-[80px] bg-neutral-950 flex items-center justify-center overflow-visible shadow-2xl">
                 <div className="relative h-full w-full flex items-center justify-center overflow-visible">
-                  <h2 className="font-serif italic text-3xl sm:text-5xl md:text-6xl font-bold tracking-[0.1em] leading-normal select-none whitespace-nowrap bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
+                  <h2 className="font-serif italic text-[7vw] sm:text-5xl md:text-6xl font-bold tracking-[0.1em] leading-normal select-none whitespace-nowrap bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
                     — Gregorio
                   </h2>
                 </div>

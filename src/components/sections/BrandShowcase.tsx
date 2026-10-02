@@ -14,19 +14,17 @@ import Image from "next/image";
 
 interface BrandItem {
   id: string;
-  name: string;
-  category: string;
+  name?: string;
+  category?: string;
   image: string;
 }
 
-const BRANDS: BrandItem[] = [
-  { id: "1", name: "Rolex", category: "Haute Horlogerie", image: "/images/brands/brand-4.jpg" },
-  { id: "2", name: "Hermès", category: "La Maison", image: "/images/brands/brand-2.jpg" },
-  { id: "3", name: "Ferrari", category: "Scuderia Maranello", image: "/images/brands/brand-3.jpg" },
-  { id: "4", name: "Chanel", category: "Haute Couture", image: "/images/brands/brand-1.jpg" },
-  { id: "5", name: "Cartier", category: "Haute Joaillerie", image: "/images/brands/brand-5.jpg" },
-  { id: "6", name: "Porsche", category: "Motorsport Stuttgart", image: "/images/brands/brand-6.jpg" },
-];
+/** Custom images in /public/images/clients/ — list the numbers that exist. */
+const CLIENT_FILES = [1, 2, 3, 4, 5, 6, 7, 9, 11, 12, 13, 15, 17, 18, 20, 21, 23, 24, 25];
+const BRANDS: BrandItem[] = CLIENT_FILES.map((n) => ({
+  id: String(n),
+  image: `/images/clients/${n}.png`,
+}));
 
 /** How long the section stays pinned while scrolling past (vh). Must stay
  *  >= 100: the next section slides up with -mt-[100vh] (see page.tsx), so
@@ -160,7 +158,7 @@ export default function BrandShowcase() {
             </span>
           </div>
 
-          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-white to-amber-200 leading-tight">
+          <h2 className="font-serif text-[6vw] tracking-[0.12em] sm:text-4xl sm:tracking-[0.2em] md:text-5xl font-bold uppercase text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-white to-amber-200 leading-tight">
             PAST CLIENTS
           </h2>
 
@@ -178,7 +176,7 @@ export default function BrandShowcase() {
               onPointerMove={onPointerMove}
               onPointerUp={endDrag}
               onPointerLeave={endDrag}
-              className={`brand-band flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto py-4 ${overflowing ? "cursor-grab active:cursor-grabbing" : ""
+              className={`brand-band flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto py-4 ${overflowing ? "cursor-grab active:cursor-grabbing" : ""
                 }`}
               style={{
                 scrollSnapType: "x mandatory",
@@ -247,28 +245,25 @@ function BrandCard({ brand, index, shown }: { brand: BrandItem; index: number; s
     <div
       data-card
       onMouseMove={onMove}
-      className="group relative shrink-0 overflow-hidden rounded-xl sm:rounded-2xl border border-amber-500/20 bg-[#101117] transition-[border-color,box-shadow] duration-300 hover:border-amber-400/60 hover:shadow-[0_18px_40px_rgba(0,0,0,0.8),0_0_24px_rgba(226,194,117,0.15)]"
+      className="group relative shrink-0 overflow-hidden rounded-xl sm:rounded-2xl border border-amber-500/30 bg-white transition-[border-color,box-shadow] duration-300 hover:border-amber-400/60 hover:shadow-[0_18px_40px_rgba(0,0,0,0.8),0_0_24px_rgba(226,194,117,0.15)]"
       style={{
-        width: "clamp(230px, 26vw, 340px)",
-        height: "clamp(260px, 46vh, 430px)",
+        width: "clamp(200px, 22vw, 300px)",
+        height: "clamp(200px, 22vw, 300px)",
         scrollSnapAlign: "start",
         opacity: shown ? 1 : 0,
         transform: shown ? "none" : "translateY(28px)",
-        transition: `opacity 700ms ease ${200 + index * 90}ms, transform 900ms cubic-bezier(0.22,1,0.36,1) ${200 + index * 90}ms, border-color 300ms, box-shadow 300ms`,
+        transition: `opacity 700ms ease ${200 + Math.min(index, 6) * 90}ms, transform 900ms cubic-bezier(0.22,1,0.36,1) ${200 + Math.min(index, 6) * 90}ms, border-color 300ms, box-shadow 300ms`,
       }}
     >
       <Image
         src={brand.image}
-        alt={brand.name}
+        alt={brand.name ?? `Client ${index + 1}`}
         fill
-        sizes="(max-width: 768px) 230px, 340px"
+        sizes="(max-width: 768px) 200px, 300px"
         draggable={false}
         priority={index < 4}
-        className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.07]"
+        className="object-contain p-6 sm:p-7 transition-transform duration-500 ease-out group-hover:scale-105"
       />
-
-      {/* luxury gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#090a0e] via-[#090a0e]/30 to-black/10 transition-colors duration-300 group-hover:via-[#090a0e]/10" />
 
       {/* gold spotlight following the cursor */}
       <span
@@ -276,28 +271,30 @@ function BrandCard({ brand, index, shown }: { brand: BrandItem; index: number; s
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
           background:
-            "radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(226,194,117,0.18), transparent 70%)",
+            "radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(226,194,117,0.14), transparent 70%)",
         }}
       />
 
       {/* index */}
-      <span className="absolute left-4 top-4 font-mono text-[10px] tabular-nums tracking-[0.25em] text-amber-200/70">
+      <span className="absolute left-2 top-2 font-mono text-[8px] sm:text-[9px] tabular-nums tracking-[0.2em] text-neutral-400">
         {pad(index + 1)}
       </span>
 
-      {/* identity badge */}
-      <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 flex items-end justify-between z-10">
-        <div>
-          <span className="block font-mono text-[8px] sm:text-[9px] tracking-[0.22em] text-amber-300/80 uppercase leading-none mb-1.5">
-            {brand.category}
-          </span>
-          <h3 className="font-serif text-base sm:text-lg font-bold text-white tracking-wider leading-tight">
-            {brand.name}
-          </h3>
-          <span className="mt-2 block h-px w-0 bg-amber-300/80 transition-all duration-500 ease-out group-hover:w-10" />
+      {/* identity badge (only when a name is set) */}
+      {brand.name && (
+        <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 flex items-end justify-between z-10">
+          <div>
+            <span className="block font-mono text-[8px] sm:text-[9px] tracking-[0.22em] text-amber-300/80 uppercase leading-none mb-1.5">
+              {brand.category}
+            </span>
+            <h3 className="font-serif text-base sm:text-lg font-bold text-white tracking-wider leading-tight">
+              {brand.name}
+            </h3>
+            <span className="mt-2 block h-px w-0 bg-amber-300/80 transition-all duration-500 ease-out group-hover:w-10" />
+          </div>
+          <span className="text-[9px] text-amber-400/60 transition-colors group-hover:text-amber-300">◆</span>
         </div>
-        <span className="text-[9px] text-amber-400/60 transition-colors group-hover:text-amber-300">◆</span>
-      </div>
+      )}
     </div>
   );
 }

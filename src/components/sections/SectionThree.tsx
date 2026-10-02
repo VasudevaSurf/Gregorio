@@ -62,6 +62,18 @@ function useResponsiveScale() {
   return scale;
 }
 
+/** True below the `lg` breakpoint (1024px) — where the portrait mobile card layout is used. */
+function useIsSmallScreen() {
+  const [small, setSmall] = useState(false);
+  useEffect(() => {
+    const update = () => setSmall(window.innerWidth < 1024);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  return small;
+}
+
 /**
  * Which two scenes the pinned stage is between, and how far along the
  * hand-over is (0..1). `p` is the scene position as a float (scene i sits at
@@ -229,7 +241,8 @@ function TestimonialCard({
   avatarColor: string;
   scale: number;
 }) {
-  const t = getCardTransform(raw, card, sceneIndex, totalScenes);
+  const isSmall = useIsSmallScreen();
+  const t = getCardTransform(raw, card, sceneIndex, totalScenes, isSmall);
 
   if (t.opacity <= 0) return null;
 
@@ -453,6 +466,7 @@ function VideoCard({
   order: number;
   onOpen: (video: VideoTestimonial) => void;
 }) {
+  const isSmall = useIsSmallScreen();
   const t = getCardTransform(
     raw,
     {
@@ -466,7 +480,8 @@ function VideoCard({
       driftPhase: order * 1.7,
     },
     sceneIndex,
-    totalScenes
+    totalScenes,
+    isSmall
   );
 
   if (t.opacity <= 0) return null;

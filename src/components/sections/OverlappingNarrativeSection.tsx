@@ -123,8 +123,12 @@ export default function OverlappingNarrativeSection() {
       const el = wrapperRef.current;
       if (!el || !lenis) return;
       const clamped = Math.min(TOTAL - 1, Math.max(0, index));
+      // offsetTop is relative to the nearest positioned parent (not the page),
+      // which sent the scroll to the wrong place (Brand Showcase). Use the
+      // element's real position in the document instead.
+      const top = el.getBoundingClientRect().top + window.scrollY;
       const target =
-        el.offsetTop +
+        top +
         (clamped / (TOTAL - 1)) * HOLD_FRACTION * (el.offsetHeight - window.innerHeight);
       lenis.scrollTo(target, { duration: 1.1 });
     },
@@ -136,9 +140,9 @@ export default function OverlappingNarrativeSection() {
 
   // Smaller overall stage, and radius brought back down closer to cardWidth
   // so the gaps between front-row cards aren't too extreme.
-  const radius = isMobile ? 320 : 620;
-  const cardWidth = isMobile ? 140 : 240;
-  const cardHeight = isMobile ? 200 : 360;
+  const radius = isMobile ? 340 : 620;
+  const cardWidth = isMobile ? 200 : 240;
+  const cardHeight = isMobile ? 290 : 360;
 
   return (
     // Tall, non-sticky wrapper — this is what gives the section real scroll

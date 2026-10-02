@@ -87,6 +87,11 @@ export function useSceneScroll(wrapperRef: React.RefObject<HTMLElement | null>) 
  *  values in categoryScenes.ts, to adjust "how far cards scroll" globally. */
 const CARD_TRAVEL_SCALE = 1.4;
 
+/** Small screens (<1024px): px between the centres of two consecutive scenes.
+ *  Lower = next group of cards follows closer behind the previous one.
+ *  Keep >= ~760 or neighbouring scenes' cards can touch. */
+export const SMALL_SCENE_SPACING = 760;
+
 /** Scene count the card pace (5200px of travel) was originally tuned for. */
 const REFERENCE_SCENES = 5;
 
@@ -131,7 +136,12 @@ export function getCardTransform(
     // 5 scenes, hence the reference of 5.)
     const paceScale = totalScenes / REFERENCE_SCENES;
 
-    const yTravelPx = 6000 * effectiveSpeed * paceScale;
+    // Desktop: fixed 6000px pace. Small screens: the distance between two
+    // scenes is SMALL_SCENE_SPACING px, just enough for one scene's stack
+    // to clear before the next one starts (no big empty gap between them).
+    const yTravelPx = isSmallScreen
+        ? SMALL_SCENE_SPACING * totalScenes
+        : 6000 * effectiveSpeed * paceScale;
     const y = -diff * yTravelPx;
 
     const wiggle = isSmallScreen
