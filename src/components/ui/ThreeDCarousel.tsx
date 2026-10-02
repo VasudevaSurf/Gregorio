@@ -86,7 +86,7 @@ export default function ThreeDCarousel({ slides = DEFAULT_SLIDES }: ThreeDCarous
 
   return (
     <div className="relative w-full max-w-5xl mx-auto flex flex-col items-center justify-center space-y-8 select-none py-6">
-      
+
       {/* 3D Stage Container */}
       <div
         className="relative w-full h-[340px] sm:h-[380px] flex items-center justify-center overflow-hidden"
@@ -119,11 +119,10 @@ export default function ThreeDCarousel({ slides = DEFAULT_SLIDES }: ThreeDCarous
               <div
                 key={slide.id}
                 onClick={() => setActiveIndex(idx)}
-                className={`absolute inset-0 rounded-2xl overflow-hidden border bg-neutral-900/90 shadow-2xl transition-all duration-700 ease-out cursor-pointer ${
-                  isActive
-                    ? "border-amber-400/80 ring-1 ring-amber-400/40 shadow-[0_10px_40px_rgba(251,191,36,0.2)]"
-                    : "border-white/10 hover:border-white/30"
-                }`}
+                className={`absolute inset-0 rounded-2xl overflow-hidden border bg-neutral-900/90 shadow-2xl transition-all duration-700 ease-out cursor-pointer ${isActive
+                  ? "border-amber-400/80 ring-1 ring-amber-400/40 shadow-[0_10px_40px_rgba(77,163,255,0.25)]"
+                  : "border-white/10 hover:border-white/30"
+                  }`}
                 style={{
                   transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
                   opacity,
@@ -138,9 +137,8 @@ export default function ThreeDCarousel({ slides = DEFAULT_SLIDES }: ThreeDCarous
                     src={slide.image}
                     alt={slide.title}
                     fill
-                    className={`object-cover transition-transform duration-700 ${
-                      isActive ? "scale-105" : "scale-100 opacity-60"
-                    }`}
+                    className={`object-cover transition-transform duration-700 ${isActive ? "scale-105" : "scale-100 opacity-60"
+                      }`}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent" />
                 </div>
@@ -172,7 +170,7 @@ export default function ThreeDCarousel({ slides = DEFAULT_SLIDES }: ThreeDCarous
 
       {/* Button Controls & Progress Bar */}
       <div className="w-full max-w-md flex items-center justify-between px-4 pt-2">
-        
+
         {/* Navigation Buttons */}
         <div className="flex items-center space-x-3">
           <button
@@ -198,9 +196,8 @@ export default function ThreeDCarousel({ slides = DEFAULT_SLIDES }: ThreeDCarous
               key={idx}
               onClick={() => setActiveIndex(idx)}
               aria-label={`Go to slide ${idx + 1}`}
-              className={`h-1.5 rounded-full transition-all duration-500 ${
-                idx === activeIndex ? "w-8 bg-amber-400" : "w-2 bg-white/20 hover:bg-white/40"
-              }`}
+              className={`h-1.5 rounded-full transition-all duration-500 ${idx === activeIndex ? "w-8 bg-amber-400" : "w-2 bg-white/20 hover:bg-white/40"
+                }`}
             />
           ))}
         </div>

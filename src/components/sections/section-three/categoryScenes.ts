@@ -56,10 +56,10 @@ const CARDS_PER_SCENE = 3;
 /** Per-scene palettes. SectionThree blends the pinned background from one
  *  scene's colour to the next as you scroll. Scenes cycle through this list. */
 const PALETTES = [
-    { background: "#2b2a26", textColor: "#e8e5da", accent: "#8a7f68" }, // warm near-black
-    { background: "#6f7b6c", textColor: "#e6e1cf", accent: "#4f5b4d" }, // sage green
-    { background: "#d9d2bd", textColor: "#2a2925", accent: "#7a6a4a" }, // light sand
-    { background: "#3d4a52", textColor: "#d5dee2", accent: "#5b7079" }, // slate blue
+    { background: "#05070d", textColor: "#e3f1ff", accent: "#4da3ff" }, // black
+    { background: "#0f2a52", textColor: "#e3f1ff", accent: "#2a7de1" }, // deep blue
+    { background: "#7fb4e6", textColor: "#06121f", accent: "#1d5fae" }, // sky blue
+    { background: "#16233b", textColor: "#d5e4f5", accent: "#5b8fd1" }, // midnight blue
 ];
 
 function initials(name: string) {

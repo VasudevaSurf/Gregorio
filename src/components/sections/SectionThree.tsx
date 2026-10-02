@@ -291,8 +291,8 @@ function TestimonialCard({
             borderRadius: "0px",
             padding: "15px 13px",
             gap: "9px",
-            backgroundColor: "#fdfcf8",
-            backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fdfcf8 40%, #f7f4eb 100%)",
+            backgroundColor: "#fbfdff",
+            backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fbfdff 40%, #eaf3fd 100%)",
             border: "1px solid rgba(0,0,0,0.06)",
             boxShadow:
               "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.06), 0 12px 28px -8px rgba(0,0,0,0.30)",
@@ -362,8 +362,8 @@ function TestimonialCard({
             borderRadius: "0px",
             padding: `${pad}px`,
             gap: `${gap}px`,
-            backgroundColor: "#fdfcf8",
-            backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fdfcf8 40%, #f7f4eb 100%)",
+            backgroundColor: "#fbfdff",
+            backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fbfdff 40%, #eaf3fd 100%)",
             border: "1px solid rgba(0,0,0,0.06)",
             boxShadow:
               "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.06), 0 16px 32px -10px rgba(0,0,0,0.32), 0 30px 60px -20px rgba(0,0,0,0.35)",
@@ -525,8 +525,8 @@ function VideoCard({
             borderRadius: "0px",
             padding: `${pad}px`,
             gap: `${Math.max(7, Math.round(10 * scale))}px`,
-            backgroundColor: "#fdfcf8",
-            backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fdfcf8 40%, #f7f4eb 100%)",
+            backgroundColor: "#fbfdff",
+            backgroundImage: "linear-gradient(165deg, #ffffff 0%, #fbfdff 40%, #eaf3fd 100%)",
             border: "1px solid rgba(0,0,0,0.06)",
             boxShadow:
               "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.06), 0 16px 32px -10px rgba(0,0,0,0.32), 0 30px 60px -20px rgba(0,0,0,0.35)",

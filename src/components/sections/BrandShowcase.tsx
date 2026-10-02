@@ -121,7 +121,7 @@ export default function BrandShowcase() {
       className="relative w-full"
       style={{ height: `calc(100vh + ${SECTION_SCROLL_VH}vh)` }}
     >
-      <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-10 h-[calc(100vh-48px)] sm:h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] w-full bg-[#08080a] overflow-hidden select-none flex flex-col items-center justify-between py-4 sm:py-6 md:py-8">
+      <div className="sticky top-[48px] sm:top-[64px] md:top-[80px] z-10 h-[calc(100vh-48px)] sm:h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] w-full bg-[#050a14] overflow-hidden select-none flex flex-col items-center justify-between py-4 sm:py-6 md:py-8">
         {/* ── Background Architectural Grid ── */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.03]">
           <div
@@ -139,7 +139,7 @@ export default function BrandShowcase() {
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] pointer-events-none rounded-full"
           style={{
             background:
-              "radial-gradient(ellipse at center, rgba(226,194,117,0.08) 0%, rgba(217,119,6,0.025) 40%, transparent 70%)",
+              "radial-gradient(ellipse at center, rgba(77,163,255,0.10) 0%, rgba(42,125,225,0.03) 40%, transparent 70%)",
           }}
         />
 
@@ -191,10 +191,10 @@ export default function BrandShowcase() {
             </div>
 
             {canLeft && (
-              <div className="pointer-events-none absolute inset-y-0 left-0 w-10 sm:w-20 bg-gradient-to-r from-[#08080a] to-transparent z-20" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-10 sm:w-20 bg-gradient-to-r from-[#050a14] to-transparent z-20" />
             )}
             {canRight && (
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-10 sm:w-20 bg-gradient-to-l from-[#08080a] to-transparent z-20" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-10 sm:w-20 bg-gradient-to-l from-[#050a14] to-transparent z-20" />
             )}
           </div>
 
@@ -224,8 +224,8 @@ export default function BrandShowcase() {
         </div>
 
         {/* ── Top / bottom depth fade ── */}
-        <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-[#08080a] to-transparent pointer-events-none z-20" />
-        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#08080a] to-transparent pointer-events-none z-20" />
+        <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-[#050a14] to-transparent pointer-events-none z-20" />
+        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#050a14] to-transparent pointer-events-none z-20" />
 
         <style dangerouslySetInnerHTML={{ __html: `.brand-band::-webkit-scrollbar { display: none; }` }} />
       </div>
@@ -245,7 +245,7 @@ function BrandCard({ brand, index, shown }: { brand: BrandItem; index: number; s
     <div
       data-card
       onMouseMove={onMove}
-      className="group relative shrink-0 overflow-hidden rounded-xl sm:rounded-2xl border border-amber-500/30 bg-white transition-[border-color,box-shadow] duration-300 hover:border-amber-400/60 hover:shadow-[0_18px_40px_rgba(0,0,0,0.8),0_0_24px_rgba(226,194,117,0.15)]"
+      className="group relative shrink-0 overflow-hidden rounded-xl sm:rounded-2xl border border-amber-500/30 bg-white transition-[border-color,box-shadow] duration-300 hover:border-amber-400/60 hover:shadow-[0_18px_40px_rgba(0,0,0,0.8),0_0_24px_rgba(77,163,255,0.18)]"
       style={{
         width: "clamp(200px, 22vw, 300px)",
         height: "clamp(200px, 22vw, 300px)",
@@ -271,7 +271,7 @@ function BrandCard({ brand, index, shown }: { brand: BrandItem; index: number; s
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
           background:
-            "radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(226,194,117,0.14), transparent 70%)",
+            "radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(77,163,255,0.16), transparent 70%)",
         }}
       />
 
